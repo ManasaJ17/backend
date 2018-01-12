@@ -1,0 +1,63 @@
+package controllers;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import dao.SignUpDaoImpl;
+import models.Users;
+import play.db.jpa.Transactional;
+import play.libs.Json;
+import play.mvc.Controller;
+import play.mvc.Result;
+
+import javax.inject.Inject;
+import java.util.List;
+
+public class SignUpController extends Controller {
+
+    private SignUpDaoImpl loginDao;
+
+    @Inject
+    public SignUpController(SignUpDaoImpl loginDao) {
+        this.loginDao = loginDao;
+    }
+
+    @Transactional
+    public Result createUser() {
+
+        final JsonNode jsonNode = request().body().asJson();
+        final String userName = jsonNode.get("name").asText();
+        final String password = jsonNode.get("password").asText();
+
+
+
+        if (null == userName) {
+            return badRequest("Missing userName");
+        }
+
+        if (null == password) {
+            return badRequest("Missing password");
+        }
+
+        Users user = new Users();
+        user.setUserName(userName);
+        user.setPassword(password);
+
+        user = loginDao.persist(user);
+
+
+        return created(user.getUserName().toString());
+    }
+
+    @Transactional
+    public Result getAllUsers() {
+
+        final List<Users> users = loginDao.findAll();
+
+        final JsonNode jsonNode = Json.toJson(users);
+
+        return ok(jsonNode);
+    }
+
+
+
+
+}
