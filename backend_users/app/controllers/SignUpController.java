@@ -13,11 +13,11 @@ import java.util.List;
 
 public class SignUpController extends Controller {
 
-    private SignUpDaoImpl loginDao;
+    private SignUpDaoImpl signUpDao;
 
     @Inject
-    public SignUpController(SignUpDaoImpl loginDao) {
-        this.loginDao = loginDao;
+    public SignUpController(SignUpDaoImpl signUpDao) {
+        this.signUpDao = signUpDao;
     }
 
     @Transactional
@@ -25,23 +25,31 @@ public class SignUpController extends Controller {
 
         final JsonNode jsonNode = request().body().asJson();
         final String userName = jsonNode.get("name").asText();
+        final String email = jsonNode.get("email").asText();
         final String password = jsonNode.get("password").asText();
 
 
-
-        if (null == userName) {
+      if (null == userName) {
             return badRequest("Missing userName");
         }
 
-        if (null == password) {
+        if (null == email) {
+            return badRequest("Missing email");
+        }
+
+        if (null == password ) {
             return badRequest("Missing password");
         }
+
+
 
         Users user = new Users();
         user.setUserName(userName);
         user.setPassword(password);
+        user.setEmail(email);
 
-        user = loginDao.persist(user);
+
+        user = signUpDao.persist(user);
 
 
         return created(user.getUserName().toString());
@@ -50,7 +58,7 @@ public class SignUpController extends Controller {
     @Transactional
     public Result getAllUsers() {
 
-        final List<Users> users = loginDao.findAll();
+        final List<Users> users = signUpDao.findAll();
 
         final JsonNode jsonNode = Json.toJson(users);
 

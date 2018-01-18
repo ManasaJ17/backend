@@ -12,7 +12,7 @@ public class SignUpDaoImpl implements SignUpDao<Users> {
 
     private JPAApi jpaApi;
 
-    @Inject
+       @Inject
     public SignUpDaoImpl(JPAApi jpaApi) { this.jpaApi = jpaApi; }
 
     public Users persist(Users user) {

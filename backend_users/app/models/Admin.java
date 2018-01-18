@@ -3,7 +3,7 @@ package models;
 import javax.persistence.*;
 
 @Entity
-public class Users{
+public class Admin{
 
     @Id
     String userName;
@@ -11,16 +11,16 @@ public class Users{
     @Basic
     String password;
 
-
     @Basic
     String email;
 
-    public Users(String userName, String password) {
+
+    public Admin(String userName, String password) {
         this.userName = userName;
         this.password = password;
     }
 
-    public Users () {
+    public Admin() {
 
     }
 
@@ -47,5 +47,4 @@ public class Users{
     public void setEmail(String email) {
         this.email = email;
     }
-
 }
