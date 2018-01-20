@@ -46,7 +46,7 @@ public class Users{
         this.userName = userName;
     }
 
-    //@JsonIgnore
+    @JsonIgnore
     public String getPassword() {
         return password;
     }
