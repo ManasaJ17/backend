@@ -27,9 +27,10 @@ public class SignUpController extends Controller {
         final String userName = jsonNode.get("name").asText();
         final String email = jsonNode.get("email").asText();
         final String password = jsonNode.get("password").asText();
+        final String role = jsonNode.get("role").asText();
 
 
-      if (null == userName) {
+        if (null == userName) {
             return badRequest("Missing userName");
         }
 
@@ -47,6 +48,24 @@ public class SignUpController extends Controller {
         user.setUserName(userName);
         user.setPassword(password);
         user.setEmail(email);
+
+        switch (role) {
+
+            case "Client" :
+                    user.setRole(2);
+                    break;
+
+            case "User" :
+                user.setRole(1);
+                break;
+
+            case "Admin" :
+                user.setRole(0);
+                break;
+
+            default: return badRequest("misssing role");
+
+        }
 
 
         user = signUpDao.persist(user);

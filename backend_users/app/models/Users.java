@@ -1,5 +1,8 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang3.RandomStringUtils;
+
 import javax.persistence.*;
 
 @Entity
@@ -11,14 +14,25 @@ public class Users{
     @Basic
     String password;
 
-
     @Basic
     String email;
+
+    @Basic
+    Integer role;
+
+    @Basic
+    private String token;
+
 
     public Users(String userName, String password) {
         this.userName = userName;
         this.password = password;
     }
+
+    public Users(String userName) {
+        this.userName = userName;
+    }
+
 
     public Users () {
 
@@ -32,6 +46,7 @@ public class Users{
         this.userName = userName;
     }
 
+    //@JsonIgnore
     public String getPassword() {
         return password;
     }
@@ -48,4 +63,21 @@ public class Users{
         this.email = email;
     }
 
+    @JsonIgnore
+    public Integer getRole() {
+        return role;
+    }
+
+    public void setRole(Integer role) {
+        this.role = role;
+    }
+
+   @JsonIgnore
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken() {
+        this.token = RandomStringUtils.randomAlphanumeric(22);
+    }
 }

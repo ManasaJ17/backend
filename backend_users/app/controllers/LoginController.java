@@ -15,6 +15,7 @@ package controllers;
 public class LoginController extends Controller {
 
     private JPAApi jpaApi;
+
     @Inject
     public LoginController(JPAApi jpaApi) { this.jpaApi = jpaApi; }
 
@@ -23,29 +24,41 @@ public class LoginController extends Controller {
 
         final JsonNode jsonNode = request().body().asJson();
         final String userName = jsonNode.get("name").asText();
-        final String password = jsonNode.get("password").asText();
+        final String pwd = jsonNode.get("password").asText();
 
 
         if (null == userName) {
             return badRequest("Missing userName");
         }
 
-        if (null == password) {
+        if (null == pwd) {
             return badRequest("Missing password");
         }
 
-        String str = "SELECT NEW models.Users(u.userName, u.password)" + "FROM Users AS u WHERE u.userName = :name AND u.password = :password";
-
+        String str = "SELECT u"+ " FROM Users u WHERE u.userName = :name";
         TypedQuery<Users> query = jpaApi.em().createQuery(str, Users.class);
         query.setParameter("name", userName);
-        query.setParameter("password", password);
 
-          if( query.getResultList().size() == 1 ) {
+        List<Users> result = query.getResultList();
+        final JsonNode json = Json.toJson(result);
 
-              return ok("login successful!!");
-          }
+        if( result.size() == 1 ) {
 
-             return badRequest("login unsuccessful!!");
+            Users user = new Users();
+
+            if ( json.findValue("password").asText().equals(pwd))  {
+
+                user.setToken();
+
+                return ok("login successful!! " + " Token: " + user.getToken().toString());
+            }
+
+            return unauthorized("incorrect password" );
+        }
+
+
+
+        return unauthorized("login unsuccessful!!");
 
 
 
