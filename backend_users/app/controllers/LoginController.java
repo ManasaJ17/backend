@@ -2,22 +2,30 @@ package controllers;
 
         import com.fasterxml.jackson.databind.JsonNode;
         import com.google.inject.Inject;
-        import models.Users;
-        import play.db.jpa.JPAApi;
+        import controllers.security.Authenticator;
+        import dao.UserDao;
+        import models.User;
+        import play.Logger;
         import play.db.jpa.Transactional;
         import play.libs.Json;
         import play.mvc.Controller;
         import play.mvc.Result;
-        import javax.persistence.TypedQuery;
+
         import java.util.List;
 
 
 public class LoginController extends Controller {
 
-    private JPAApi jpaApi;
+    private final static Logger.ALogger LOGGER = Logger.of(LoginController.class);
+
+
+    private UserDao userDao;
 
     @Inject
-    public LoginController(JPAApi jpaApi) { this.jpaApi = jpaApi; }
+    public LoginController(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
 
     @Transactional
     public Result login() {
@@ -25,7 +33,6 @@ public class LoginController extends Controller {
         final JsonNode jsonNode = request().body().asJson();
         final String userName = jsonNode.get("name").asText();
         final String pwd = jsonNode.get("password").asText();
-
 
         if (null == userName) {
             return badRequest("Missing userName");
@@ -35,20 +42,22 @@ public class LoginController extends Controller {
             return badRequest("Missing password");
         }
 
-        String str = "SELECT u"+ " FROM Users u WHERE u.userName = :name";
-        TypedQuery<Users> query = jpaApi.em().createQuery(str, Users.class);
-        query.setParameter("name", userName);
 
-        List<Users> result = query.getResultList();
-        final JsonNode json = Json.toJson(result);
+        final List<User> result = userDao.getUser(userName);
+        LOGGER.debug("Got result");
 
         if( result.size() == 1 ) {
 
-            Users user = new Users();
+            LOGGER.debug("result is 1");
+
+            User user = new User();
+            final JsonNode json = Json.toJson(result);
 
             if ( json.findValue("password").asText().equals(pwd))  {
 
-                user.setToken();
+                String token = userDao.generateToken(userName);
+                user.setToken(token);
+
 
                 return ok("login successful!! " + " Token: " + user.getToken().toString());
             }
@@ -60,8 +69,21 @@ public class LoginController extends Controller {
 
         return unauthorized("login unsuccessful!!");
 
-
-
     }
+
+    @Authenticator
+    public Result getCurrentUser() {
+
+        LOGGER.debug("Get current user");
+
+        final User user = (User) ctx().args.get("user");
+
+        LOGGER.debug("User: {}", user);
+
+        final JsonNode json = Json.toJson(user);
+
+        return ok(json);
+    }
+
 }
 

@@ -1,8 +1,8 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import dao.SignUpDaoImpl;
-import models.Users;
+import dao.UserDao;
+import models.User;
 import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -13,11 +13,11 @@ import java.util.List;
 
 public class SignUpController extends Controller {
 
-    private SignUpDaoImpl signUpDao;
+    private UserDao userDao;
 
     @Inject
-    public SignUpController(SignUpDaoImpl signUpDao) {
-        this.signUpDao = signUpDao;
+    public SignUpController(UserDao userDao) {
+        this.userDao = userDao;
     }
 
     @Transactional
@@ -38,53 +38,52 @@ public class SignUpController extends Controller {
             return badRequest("Missing email");
         }
 
-        if (null == password ) {
+        if (null == password) {
             return badRequest("Missing password");
         }
 
+            User user = new User();
+            user.setUserName(userName);
+            user.setPassword(password);
+            user.setEmail(email);
 
+            switch (role) {
 
-        Users user = new Users();
-        user.setUserName(userName);
-        user.setPassword(password);
-        user.setEmail(email);
-
-        switch (role) {
-
-            case "Client" :
+                case "Client":
                     user.setRole(2);
                     break;
 
-            case "User" :
-                user.setRole(1);
-                break;
+                case "User":
+                    user.setRole(1);
+                    break;
 
-            case "Admin" :
-                user.setRole(0);
-                break;
+                case "Admin":
+                    user.setRole(0);
+                    break;
 
-            default: return badRequest("misssing role");
+                default:
+                    return badRequest("missing role");
 
+            }
+
+            user = userDao.persist(user);
+
+
+            return created(user.getUserName().toString());
         }
 
-
-        user = signUpDao.persist(user);
-
-
-        return created(user.getUserName().toString());
-    }
 
     @Transactional
     public Result getAllUsers() {
 
-        final List<Users> users = signUpDao.findAll();
+        final List<User> users = userDao.findAll();
 
-        final JsonNode jsonNode = Json.toJson(users);
+        final JsonNode jsonNode1 = Json.toJson(users);
 
-        return ok(jsonNode);
+        return ok(jsonNode1);
     }
-
-
-
-
 }
+
+
+
+

@@ -10,7 +10,9 @@ GET /users                          controllers.SignUpController.getAllUsers()
 
 # login
 
-POST /login                  controllers.LoginController.login()
+POST /users/login                  controllers.LoginController.login()
+
+GET /users/me               controllers.LoginController.getCurrentUser()
 
 
 

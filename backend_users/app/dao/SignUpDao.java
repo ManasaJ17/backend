@@ -1,6 +1,6 @@
 package dao;
 
-import models.Users;
+import models.User;
 
 import java.util.List;
 
@@ -8,6 +8,6 @@ public interface SignUpDao<E>  {
 
     E persist(E entity);
 
-    List<Users> findAll();
+    List<User> findAll();
 
 }
