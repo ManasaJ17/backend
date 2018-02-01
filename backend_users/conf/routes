@@ -14,6 +14,11 @@ POST /users/login                  controllers.LoginController.login()
 
 GET /users/me               controllers.LoginController.getCurrentUser()
 
+#restaurants
+
+POST /rest                  controllers.RestaurantController.createRestaurant()
+
+#GET /rest                   controller.RestaurantController.
 
 
 # An example controller showing a sample home page

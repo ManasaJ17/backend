@@ -1,11 +1,15 @@
     package dao;
 
 
+    import com.fasterxml.jackson.databind.JsonNode;
     import com.google.inject.Inject;
     import models.User;
     import org.apache.commons.lang3.RandomStringUtils;
     import play.db.jpa.JPAApi;
+    import play.db.jpa.Transactional;
+    import play.libs.Json;
 
+    import javax.persistence.EntityManager;
     import javax.persistence.Query;
     import javax.persistence.TypedQuery;
     import java.util.List;
@@ -16,8 +20,25 @@
 
         private JPAApi jpaApi;
 
+
         @Inject
         public UserDao(JPAApi jpaApi) { this.jpaApi = jpaApi; }
+
+
+
+
+        public List<User> getUserByAccessToken(String token) {
+
+
+            TypedQuery<User> query = jpaApi.em().createQuery("SELECT u FROM User u WHERE u.token = :token", User.class);
+            query.setParameter("token", token);
+
+            List<User> result1 = query.getResultList();
+
+            return result1;
+
+
+        }
 
 
         public User persist(User user) {
@@ -26,6 +47,7 @@
 
             return user;
         }
+
 
         public List<User> findAll() {
 
@@ -37,7 +59,7 @@
 
         public List<User> getUser(String userName) {
 
-            String str = "SELECT u"+ " FROM User u WHERE u.userName = :name";
+            String str = "SELECT u FROM User u WHERE u.userName = :name";
             TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
             query.setParameter("name", userName);
 
@@ -48,18 +70,19 @@
 
         public String generateToken(String userName) {
 
-            //String token= RandomStringUtils.randomAlphanumeric(22);
-            Random r = new Random(); // perhaps make it a class variable so you don't make a new one every time
-            StringBuilder token = new StringBuilder();
-            for(int i = 0; i < 22; i++) {
-                char c = (char)(r.nextInt((int)(Character.MAX_VALUE)));
-                token.append(c);
-            }
+            String token= RandomStringUtils.randomAlphanumeric(22);
+
 
             User b = jpaApi.em().find(User.class,userName);
-            b.setToken(token.toString());
-            return token.toString();
+            b.setToken(token);
+
+            return token;
         }
+
+
+
+
+
 
 
     }

@@ -69,12 +69,13 @@
 
         }
 
+        @Transactional
         @Authenticator
         public Result getCurrentUser() {
 
             LOGGER.debug("Get current user");
 
-            final User user = (User) ctx().args.get("user");
+            final List<User> user = (List<User>) ctx().args.get("user");
 
             LOGGER.debug("User: {}", user);
 

@@ -27,8 +27,8 @@
             this.password = password;
         }
 
-        public User(String userName) {
-            this.userName = userName;
+        public User(String token) {
+            this.token = token;
         }
 
 

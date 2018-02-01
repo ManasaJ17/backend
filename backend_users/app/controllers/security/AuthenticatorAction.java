@@ -2,15 +2,19 @@ package controllers.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
+import dao.UserDao;
 import models.User;
 import play.Logger;
 import play.db.jpa.JPAApi;
+import play.db.jpa.Transactional;
 import play.libs.Json;
 import play.mvc.Action;
 import play.mvc.Http;
 import play.mvc.Result;
 
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -20,10 +24,14 @@ public class AuthenticatorAction extends Action.Simple {
 
     private final static Logger.ALogger LOGGER = Logger.of(AuthenticatorAction.class);
 
+    private UserDao userDao;
     private JPAApi jpaApi;
 
     @Inject
-    public AuthenticatorAction(JPAApi jpaApi) { this.jpaApi = jpaApi; }
+    public AuthenticatorAction(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
 
 
     @Override
@@ -49,12 +57,24 @@ public class AuthenticatorAction extends Action.Simple {
         }
         LOGGER.debug("Access token: {}", accessToken);
 
+      /*final User user = jpaApi.withTransaction(entityManager -> {
 
-        String str = "SELECT u"+ " FROM User u WHERE u.token = :token";
-        TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
-        query.setParameter("token", accessToken);
+            Query query = entityManager.createNativeQuery("SELECT NEW models.Users(u.token) FROM User AS u WHERE u.token = :token ");
+          query.setParameter("token", accessToken);
 
-        List<User> user = query.getResultList();
+
+          List<User> user1= query.getResultList();
+
+
+
+           return new User();
+
+        });
+        */
+
+
+      final List<User> user = userDao.getUserByAccessToken(accessToken);
+
 
         if (user.size() != 1) {
 

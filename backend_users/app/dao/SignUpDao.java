@@ -8,6 +8,6 @@ public interface SignUpDao<E>  {
 
     E persist(E entity);
 
-    List<User> findAll();
+    List<E> findAll();
 
 }
