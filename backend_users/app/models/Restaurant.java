@@ -6,24 +6,25 @@ import javax.persistence.*;
 @Entity
 public class Restaurant {
 
+    public enum ApproveStatus {
+        New, Approved, Rejected
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    Integer id;
+    Integer Id;
 
     @Basic
-    String restaurantName;
+    String name;
 
     @Basic
     String type;
 
     @Basic
-    String timings;
-
-    @Basic
     String address;
 
     @Basic
-    String contact;
+    Long contact;
 
     @Basic
     String homepageUrl;
@@ -32,26 +33,27 @@ public class Restaurant {
     String fbUrl;
 
     @Basic
-    String cost;
+    Integer cost;
 
+    @Basic
+    ApproveStatus status;
+
+    //Boolean isReviewed;
+    
+    //Boolean isApproved;
+
+
+    
     public Restaurant() {
     }
 
 
-    public Integer getId() {
-        return id;
+    public String getName() {
+        return name;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getRestaurantName() {
-        return restaurantName;
-    }
-
-    public void setRestaurantName(String restaurantName) {
-        this.restaurantName = restaurantName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getType() {
@@ -62,14 +64,6 @@ public class Restaurant {
         this.type = type;
     }
 
-    public String getTimings() {
-        return timings;
-    }
-
-    public void setTimings(String timings) {
-        this.timings = timings;
-    }
-
     public String getAddress() {
         return address;
     }
@@ -78,11 +72,11 @@ public class Restaurant {
         this.address = address;
     }
 
-    public String getContact() {
+    public Long getContact() {
         return contact;
     }
 
-    public void setContact(String contact) {
+    public void setContact(Long contact) {
         this.contact = contact;
     }
 
@@ -102,11 +96,19 @@ public class Restaurant {
         this.fbUrl = fbUrl;
     }
 
-    public String getCost() {
+    public Integer getCost() {
         return cost;
     }
 
-    public void setCost(String cost) {
+    public void setCost(Integer cost) {
         this.cost = cost;
+    }
+
+    public ApproveStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ApproveStatus status) {
+        this.status = status;
     }
 }

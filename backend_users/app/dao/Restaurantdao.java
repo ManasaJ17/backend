@@ -1,61 +1,35 @@
 package dao;
 
-
 import com.google.inject.Inject;
 import models.Restaurant;
-import org.apache.commons.lang3.RandomStringUtils;
 import play.db.jpa.JPAApi;
 
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import java.util.List;
-import java.util.Random;
 
-public class Restaurantdao implements SignUpDao<Restaurant> {
-
+public class RestaurantDao implements SignUpDao<Restaurant> {
 
     private JPAApi jpaApi;
 
     @Inject
-    public Restaurantdao(JPAApi jpaApi) { this.jpaApi = jpaApi; }
+    public RestaurantDao(JPAApi jpaApi) { this.jpaApi = jpaApi; }
 
 
-    public Restaurant persist(Restaurant res) {
 
-        jpaApi.em().persist(res);
+    @Override
+    public Restaurant persist(Restaurant restaurant) {
 
-        return res;
+        jpaApi.em().persist(restaurant);
+
+        return restaurant;
     }
 
-   public List<Restaurant> findAll() {
+    @Override
+    public List<Restaurant> findAll() {
 
-        TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT u FROM User u", Restaurant.class);
-        List<Restaurant> users = query.getResultList();
+        TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r", Restaurant.class);
+        List<Restaurant> restaurants = query.getResultList();
 
-        return users;
+        return restaurants;
     }
-
-    public List<Restaurant> getUser(String userName) {
-
-        String str = "SELECT u"+ " FROM User u WHERE u.userName = :name";
-        TypedQuery<Restaurant> query = jpaApi.em().createQuery(str, Restaurant.class);
-        query.setParameter("name", userName);
-
-        List<Restaurant> result = query.getResultList();
-
-        return result;
-    }
-
-   /* public String generateToken(String userName) {
-
-        String token= RandomStringUtils.randomAlphanumeric(22);
-
-
-        Restaurant b = jpaApi.em().find(Restaurant.class,userName);
-        b.setToken(token);
-
-        return token;
-    }*/
-
-
 }

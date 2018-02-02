@@ -9,6 +9,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 
 import javax.inject.Inject;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public class SignUpController extends Controller {
@@ -21,7 +22,7 @@ public class SignUpController extends Controller {
     }
 
     @Transactional
-    public Result createUser() {
+    public Result createUser() throws NoSuchAlgorithmException {
 
         final JsonNode jsonNode = request().body().asJson();
         final String userName = jsonNode.get("name").asText();
@@ -44,7 +45,6 @@ public class SignUpController extends Controller {
 
             User user = new User();
             user.setUserName(userName);
-            user.setPassword(password);
             user.setEmail(email);
 
             switch (role) {
@@ -66,8 +66,13 @@ public class SignUpController extends Controller {
 
             }
 
-            user = userDao.persist(user);
+            String salt = userDao.generateSalt();
+            user.setSalt(salt);
 
+            String hashedPassword = userDao.hashedPassword(password, salt, 30);
+            user.setPassword(hashedPassword);
+
+            user = userDao.persist(user);
 
             return created(user.getUserName().toString());
         }

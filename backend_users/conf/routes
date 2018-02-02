@@ -8,17 +8,25 @@ POST /users                         controllers.SignUpController.createUser()
 
 GET /users                          controllers.SignUpController.getAllUsers()
 
+
+
 # login
 
 POST /users/login                  controllers.LoginController.login()
 
 GET /users/me               controllers.LoginController.getCurrentUser()
 
-#restaurants
 
-POST /rest                  controllers.RestaurantController.createRestaurant()
 
-#GET /rest                   controller.RestaurantController.
+# Restaurant
+
+ POST /restaurant                controllers.RestaurantController.createRestaurant()
+
+ GET /restaurant                controllers.RestaurantController.getAllRestaurants()
+
+
+
+
 
 
 # An example controller showing a sample home page
