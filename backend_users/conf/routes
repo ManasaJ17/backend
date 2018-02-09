@@ -2,27 +2,26 @@
 # This file defines all application routes (Higher priority routes first)
 
 
-# ~~~~ signUp
+# ~~~~ User
 
-POST /users                         controllers.SignUpController.createUser()
+POST /users                         controllers.UserController.createUser()
 
-GET /users                          controllers.SignUpController.getAllUsers()
+GET /users                          controllers.UserController.getAllUsers()
 
+POST /users/login                   controllers.UserController.login()
 
+GET /users/me                       controllers.UserController.getCurrentUser()
 
-# login
+# POST /user/reset                    controllers.UserController.resetPassword()
 
-POST /users/login                  controllers.LoginController.login()
-
-GET /users/me               controllers.LoginController.getCurrentUser()
-
+POST /user/newToken                    controllers.UserController.resetAccessToken()
 
 
 # Restaurant
 
  POST /restaurant                controllers.RestaurantController.createRestaurant()
 
- GET /restaurant                controllers.RestaurantController.getAllRestaurants()
+  GET /restaurant                 controllers.RestaurantController.getAllRestaurants()
 
 
 

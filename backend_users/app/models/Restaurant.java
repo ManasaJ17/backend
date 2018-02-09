@@ -38,6 +38,9 @@ public class Restaurant {
     @Basic
     ApproveStatus status;
 
+    @OneToOne
+    private User owner;
+
     //Boolean isReviewed;
     
     //Boolean isApproved;
@@ -110,5 +113,14 @@ public class Restaurant {
 
     public void setStatus(ApproveStatus status) {
         this.status = status;
+    }
+
+
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
     }
 }

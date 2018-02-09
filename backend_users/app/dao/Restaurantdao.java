@@ -32,4 +32,6 @@ public class RestaurantDao implements SignUpDao<Restaurant> {
 
         return restaurants;
     }
+
+
 }

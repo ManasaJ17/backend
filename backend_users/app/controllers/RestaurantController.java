@@ -10,7 +10,10 @@
     import play.mvc.Result;
 
     import javax.inject.Inject;
+    import java.security.acl.Owner;
     import java.util.List;
+
+    import static play.db.jpa.JPA.em;
 
     public class RestaurantController extends Controller {
 
@@ -32,6 +35,7 @@
             final String hpUrl = jsonNode.get("hpUrl").asText();
             final String fbUrl = jsonNode.get("fbUrl").asText();
             final Integer cost = jsonNode.get("cost").asInt();
+            final User owner = (User) jsonNode.get("owner");
 
 
             if (null == name) {
@@ -65,6 +69,7 @@
             restaurant.setFbUrl(fbUrl);
             restaurant.setCost(cost);
             restaurant.setStatus(Restaurant.ApproveStatus.New);
+            restaurant.setOwner(owner);
 
 
             restaurant = restaurantDao.persist(restaurant);

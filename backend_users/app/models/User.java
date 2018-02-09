@@ -8,6 +8,10 @@
         @Entity
         public class User {
 
+            public enum Role {
+              Admin, Client, User
+            }
+
             @Id
             String userName;
 
@@ -18,7 +22,7 @@
             String email;
 
             @Basic
-            Integer role;
+            Role role;
 
             @Basic
             @JsonProperty("access_token")
@@ -34,11 +38,6 @@
 
             @Basic
             private String salt;
-
-
-            public User(String token) {
-                this.token = token;
-            }
 
 
             public User() {
@@ -71,15 +70,11 @@
             }
 
             @JsonIgnore
-            public Integer getRole() {
-                return role;
-            }
+            public Role getRole() { return role; }
 
-            public void setRole(Integer role) {
-                this.role = role;
-            }
+            public void setRole(Role role) { this.role = role; }
 
-           @JsonIgnore
+           //@JsonIgnore
             public String getToken() {
                 return token;
             }
