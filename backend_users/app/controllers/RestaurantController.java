@@ -1,19 +1,20 @@
     package controllers;
 
     import com.fasterxml.jackson.databind.JsonNode;
+    import controllers.security.Authenticator;
     import dao.RestaurantDao;
     import models.Restaurant;
     import models.User;
+    import play.Logger;
     import play.db.jpa.Transactional;
     import play.libs.Json;
     import play.mvc.Controller;
     import play.mvc.Result;
 
     import javax.inject.Inject;
-    import java.security.acl.Owner;
+
     import java.util.List;
 
-    import static play.db.jpa.JPA.em;
 
     public class RestaurantController extends Controller {
 
@@ -24,9 +25,17 @@
             this.restaurantDao = restaurantDao;
         }
 
+        private final static Logger.ALogger LOGGER = Logger.of(RestaurantController.class);
+
+
+
         @Transactional
+        @Authenticator
         public Result createRestaurant() {
 
+            LOGGER.debug("in createRestaurant");
+
+            final JsonNode json = (JsonNode) ctx().args.get("user");
             final JsonNode jsonNode = request().body().asJson();
             final String name = jsonNode.get("name").asText();
             final String type = jsonNode.get("type").asText();
@@ -35,7 +44,7 @@
             final String hpUrl = jsonNode.get("hpUrl").asText();
             final String fbUrl = jsonNode.get("fbUrl").asText();
             final Integer cost = jsonNode.get("cost").asInt();
-            final User owner = (User) jsonNode.get("owner");
+
 
 
             if (null == name) {
@@ -58,8 +67,6 @@
                 return badRequest("Missing Cost");
             }
 
-
-
             Restaurant restaurant =  new Restaurant();
             restaurant.setName(name);
             restaurant.setType(type);
@@ -69,6 +76,8 @@
             restaurant.setFbUrl(fbUrl);
             restaurant.setCost(cost);
             restaurant.setStatus(Restaurant.ApproveStatus.New);
+
+            User owner = Json.fromJson(json.findValue("userName"), User.class);
             restaurant.setOwner(owner);
 
 
@@ -89,6 +98,7 @@
         }
 
         @Transactional
+        @Authenticator
         public Result getAllRestaurants() {
 
             final List<Restaurant> clients = restaurantDao.findAll();

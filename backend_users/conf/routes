@@ -19,7 +19,8 @@ POST /user/newToken                    controllers.UserController.resetAccessTok
 
 # Restaurant
 
- POST /restaurant                controllers.RestaurantController.createRestaurant()
+ + nocsrf
+ POST /new/restaurant                controllers.RestaurantController.createRestaurant()
 
   GET /restaurant                 controllers.RestaurantController.getAllRestaurants()
 

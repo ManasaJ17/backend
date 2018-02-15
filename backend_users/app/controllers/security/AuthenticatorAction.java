@@ -53,11 +53,11 @@
                     return CompletableFuture.completedFuture(unauthorized());
                 }
 
-                Long expiryTime = new Timestamp(System.currentTimeMillis()).getTime();
+                /*Long expiryTime = new Timestamp(System.currentTimeMillis()).getTime();
                 if ((expiryTime > user.findValue("expiry_token").asLong() )){
                     return CompletableFuture.completedFuture(unauthorized());
                 }
-
+*/
                 LOGGER.debug("User: {}", user);
 
                 ctx.args.put("user", user);
