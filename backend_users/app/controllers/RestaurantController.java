@@ -13,6 +13,7 @@
 
     import javax.inject.Inject;
 
+    import java.util.ArrayList;
     import java.util.List;
 
 
@@ -31,11 +32,13 @@
 
         @Transactional
         @Authenticator
-        public Result createRestaurant() {
+        public Result createRestaurant()  {
 
             LOGGER.debug("in createRestaurant");
 
-            final JsonNode json = (JsonNode) ctx().args.get("user");
+            final User user = (User) ctx().args.get("user");
+            final JsonNode json = Json.toJson(user);
+
             final JsonNode jsonNode = request().body().asJson();
             final String name = jsonNode.get("name").asText();
             final String type = jsonNode.get("type").asText();
@@ -44,8 +47,6 @@
             final String hpUrl = jsonNode.get("hpUrl").asText();
             final String fbUrl = jsonNode.get("fbUrl").asText();
             final Integer cost = jsonNode.get("cost").asInt();
-
-
 
             if (null == name) {
                 return badRequest("Missing restaurant name");
@@ -77,9 +78,12 @@
             restaurant.setCost(cost);
             restaurant.setStatus(Restaurant.ApproveStatus.New);
 
-            User owner = Json.fromJson(json.findValue("userName"), User.class);
+            User owner = Json.fromJson( json.findValue("userName"), User.class);
             restaurant.setOwner(owner);
 
+            List<Restaurant> res= new ArrayList<>();
+            restaurant.getOwner().setRestaurants(res);
+            user.setRestaurants(res);
 
             restaurant = restaurantDao.persist(restaurant);
 

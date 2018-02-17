@@ -48,7 +48,7 @@
                 }
                 LOGGER.debug("Access token: {}", accessToken);
 
-                JsonNode user = userDao.findAccessToken(accessToken);
+                User user = userDao.findAccessToken(accessToken);
                 if (null == user) {
                     return CompletableFuture.completedFuture(unauthorized());
                 }
@@ -56,8 +56,8 @@
                 /*Long expiryTime = new Timestamp(System.currentTimeMillis()).getTime();
                 if ((expiryTime > user.findValue("expiry_token").asLong() )){
                     return CompletableFuture.completedFuture(unauthorized());
-                }
-*/
+                }*/
+
                 LOGGER.debug("User: {}", user);
 
                 ctx.args.put("user", user);

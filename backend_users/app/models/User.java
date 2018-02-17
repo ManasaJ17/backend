@@ -1,11 +1,15 @@
         package models;
 
-        import com.fasterxml.jackson.annotation.JsonIgnore;
-        import com.fasterxml.jackson.annotation.JsonProperty;
+        import com.fasterxml.jackson.annotation.*;
+        import scala.Int;
 
         import javax.persistence.*;
+        import java.util.ArrayList;
+        import java.util.List;
+        import java.util.Set;
 
         @Entity
+        //@JsonIgnoreProperties({ "password" , "email" , "salt", "role"})
         public class User {
 
             public enum Role {
@@ -39,6 +43,11 @@
             @Basic
             private String salt;
 
+            @Basic
+            @JsonManagedReference
+            @OneToMany(mappedBy = "owner")
+            private List<Restaurant> restaurants;
+
 
             public User() {
 
@@ -46,6 +55,11 @@
 
             public User (String userName){
                 this.userName = userName;
+            }
+
+            public User(String userName, List<Restaurant> restaurants) {
+                this.userName = userName;
+                this.restaurants = restaurants;
             }
 
             public String getUserName() {
@@ -56,7 +70,6 @@
                 this.userName = userName;
             }
 
-           //@JsonIgnore
             public String getPassword() {
                 return password;
             }
@@ -78,7 +91,6 @@
 
             public void setRole(Role role) { this.role = role; }
 
-           //@JsonIgnore
             public String getToken() {
                 return token;
             }
@@ -89,9 +101,7 @@
                 return tokenExpire;
             }
 
-            public void setTokenExpire(Long tokenExpire) {
-                this.tokenExpire = tokenExpire;
-            }
+            public void setTokenExpire(Long tokenExpire) { this.tokenExpire = tokenExpire; }
 
             public String getRefreshToken() {
                 return refreshToken;
@@ -107,5 +117,13 @@
 
             public void setSalt(String salt) {
                 this.salt = salt;
+            }
+
+            public List<Restaurant> getRestaurants() {
+                return restaurants;
+            }
+
+            public void setRestaurants(List<Restaurant> restaurants) {
+                this.restaurants = restaurants;
             }
         }

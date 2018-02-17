@@ -1,155 +1,161 @@
-package dao;
+    package dao;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.inject.Inject;
-import models.User;
-import play.db.jpa.JPAApi;
-import play.libs.Json;
+    import com.fasterxml.jackson.databind.JsonNode;
+    import com.google.inject.Inject;
+    import models.User;
+    import play.db.jpa.JPAApi;
+    import play.libs.Json;
 
-import javax.persistence.Query;
-import javax.persistence.TypedQuery;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.sql.Timestamp;
-import java.util.List;
-
-
-public class UserDao implements SignUpDao<User> {
+    import javax.persistence.Query;
+    import javax.persistence.TypedQuery;
+    import java.nio.charset.StandardCharsets;
+    import java.security.MessageDigest;
+    import java.security.NoSuchAlgorithmException;
+    import java.security.SecureRandom;
+    import java.sql.Timestamp;
+    import java.util.List;
 
 
-    private JPAApi jpaApi;
-
-    @Inject
-    public UserDao(JPAApi jpaApi) { this.jpaApi = jpaApi; }
+    public class UserDao implements SignUpDao<User> {
 
 
-    public User persist(User user) {
+        private JPAApi jpaApi;
 
-        jpaApi.em().persist(user);
-
-        return user;
-    }
+        @Inject
+        public UserDao(JPAApi jpaApi) { this.jpaApi = jpaApi; }
 
 
-    public List<User> findAll() {
+        public User persist(User user) {
 
-        TypedQuery<User> query = jpaApi.em().createQuery("SELECT u FROM User u", User.class);
-        List<User> users = query.getResultList();
+            jpaApi.em().persist(user);
 
-        return users;
-    }
-
-    public  JsonNode getUser(String name) {
-
-        String str = "SELECT u FROM User u WHERE u.userName = :name OR u.email = :name";
-        TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
-        query.setParameter("name", name);
-
-        List<User> result = query.getResultList();
-        if( result.size() == 1 ) {
-
-            final JsonNode json = Json.toJson(result);
-            return  json;
+            return user;
         }
 
-        return null;
-    }
 
-    public User generateToken(String userName, int flag) {
+        public List<User> findAll() {
+
+            TypedQuery<User> query = jpaApi.em().createQuery("SELECT u FROM User u", User.class);
+            List<User> users = query.getResultList();
+
+            return users;
+        }
+
+        public User getUser(String name) {
+
+            String str = "SELECT u FROM User u WHERE u.userName = :name OR u.email = :name";
+            TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
+            query.setParameter("name", name);
+
+            List<User> result = query.getResultList();
+
+            if(result.isEmpty()){
+                return null;
+            }
+
+            User user = result.get(0);
+            return user;
+        }
+
+        public static String generateToken() {
 
 
-        SecureRandom random = new SecureRandom();
+            SecureRandom random = new SecureRandom();
 
-        User user = jpaApi.em().find(User.class,userName);
+            long longToken = Math.abs( random.nextLong() );
+            String token = Long.toString( longToken, 16 );
 
-        long longToken = Math.abs( random.nextLong() );
-        String token = Long.toString( longToken, 16 );
-        user.setToken(token);
+            return token;
+        }
 
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis() + (12*60*60*1000));
-        Long expiry = timestamp.getTime() ;
-        user.setTokenExpire(expiry);
+        public static String generateRefreshToken ( ){
 
-        if(flag == 1) {
+            SecureRandom random = new SecureRandom();
+
             long refToken = Math.abs(random.nextLong());
             final String refreshToken = Long.toString(refToken, 16);
-            user.setRefreshToken(refreshToken);
+
+            return refreshToken;
         }
 
-        return user;
-    }
+        public static Long generateExpiryTime ( ){
 
-    public JsonNode findAccessToken(String accessToken){
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis() + (12*60*60*1000));
+            Long expiry = timestamp.getTime() ;
 
-        String str = "SELECT u FROM User AS u WHERE u.token = :token";
-        TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
-        query.setParameter("token", accessToken);
-
-        List<User> result = query.getResultList();
-        if( result.size() == 1 ) {
-
-            final JsonNode json = Json.toJson(result);
-            return  json;
+            return expiry;
         }
 
-        return null;
-    }
+        public User findAccessToken(String accessToken){
 
-    public JsonNode findRefreshToken(String refreshToken){
+            String str = "SELECT u FROM User AS u WHERE u.token = :token";
+            TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
+            query.setParameter("token", accessToken);
 
-        String str = "SELECT u FROM User AS u WHERE u.refreshToken = :token";
-        TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
-        query.setParameter("token", refreshToken);
+            List<User> result = query.getResultList();
 
-        List<User> result = query.getResultList();
-        if( result.size() == 1 ) {
+            if(result.isEmpty()){
+                return null;
+            }
 
-            final JsonNode json = Json.toJson(result);
-            return  json;
+            User user = result.get(0);
+            return user;
+
         }
 
-        return null;
-    }
+        public User findRefreshToken(String refreshToken){
 
-    public String generateSalt(){
+            String str = "SELECT u FROM User AS u WHERE u.refreshToken = :token";
+            TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
+            query.setParameter("token", refreshToken);
 
-        SecureRandom random = new SecureRandom();
+            List<User> result = query.getResultList();
 
-        Integer intSalt = Math.abs( random.nextInt() );
-        String salt = Integer.toString( intSalt, 8 );
+            if(result.isEmpty()){
+                return null;
+            }
 
-        return salt;
-    }
-
-    public String hashedPassword(String password, String salt, int iteration) throws NoSuchAlgorithmException {
-
-        String saltPwd = salt.concat(password);
-
-        MessageDigest mDigest = MessageDigest.getInstance("SHA-256");
-        final byte[] hash = mDigest.digest(saltPwd.getBytes(StandardCharsets.UTF_8));
-
-        StringBuffer hexString = new StringBuffer();
-
-        for(int i=0; i< iteration; i++){
-
-            String hex = Integer.toHexString(0xff & hash[i] );
-            hexString.append(hex);
+            User user = result.get(0);
+            return user;
         }
-        return hexString.toString();
+
+        public String generateSalt(){
+
+            SecureRandom random = new SecureRandom();
+
+            Integer intSalt = Math.abs( random.nextInt() );
+            String salt = Integer.toString( intSalt, 8 );
+
+            return salt;
+        }
+
+        public String hashedPassword(String password, String salt, int iteration) throws NoSuchAlgorithmException {
+
+            String saltPwd = salt.concat(password);
+
+            MessageDigest mDigest = MessageDigest.getInstance("SHA-256");
+            final byte[] hash = mDigest.digest(saltPwd.getBytes(StandardCharsets.UTF_8));
+
+            StringBuffer hexString = new StringBuffer();
+
+            for(int i=0; i< iteration; i++){
+
+                String hex = Integer.toHexString(0xff & hash[i] );
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        }
+
+      /* public void updatePassword(String newPassword, String email) {
+
+
+            Query query = jpaApi.em().createQuery( "UPDATE User u SET u.password = :password WHERE u.email = :email");
+            query.setParameter("password", newPassword);
+            query.setParameter("", email);
+            query.executeUpdate();
+
+
+        }*/
+
     }
-
-  /* public void updatePassword(String newPassword, String email) {
-
-
-        Query query = jpaApi.em().createQuery( "UPDATE User u SET u.password = :password WHERE u.email = :email");
-        query.setParameter("password", newPassword);
-        query.setParameter("", email);
-        query.executeUpdate();
-
-
-    }*/
-
-}

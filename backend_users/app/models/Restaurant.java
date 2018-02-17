@@ -1,6 +1,9 @@
 package models;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import javax.persistence.*;
 
 @Entity
@@ -38,7 +41,9 @@ public class Restaurant {
     @Basic
     ApproveStatus status;
 
-    @OneToOne
+    @Basic
+    @JsonBackReference
+    @ManyToOne
     private User owner;
 
     //Boolean isReviewed;
