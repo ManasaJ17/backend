@@ -24,6 +24,8 @@ POST /user/newToken                    controllers.UserController.resetAccessTok
 
   GET /restaurant                 controllers.RestaurantController.getAllRestaurants()
 
+ GET /restaurant/owner      controllers.RestaurantController.getClientRestaurants()
+
 
 
 

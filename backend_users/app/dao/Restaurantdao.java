@@ -2,6 +2,7 @@ package dao;
 
 import com.google.inject.Inject;
 import models.Restaurant;
+import models.User;
 import play.db.jpa.JPAApi;
 
 import javax.persistence.TypedQuery;
@@ -24,10 +25,20 @@ public class RestaurantDao implements SignUpDao<Restaurant> {
         return restaurant;
     }
 
+
     @Override
     public List<Restaurant> findAll() {
 
         TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r", Restaurant.class);
+        List<Restaurant> restaurants = query.getResultList();
+
+        return restaurants;
+    }
+
+    public List<Restaurant> findByOwner(User owner) {
+
+        TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE r.owner = :owner ", Restaurant.class);
+        query.setParameter("owner", owner);
         List<Restaurant> restaurants = query.getResultList();
 
         return restaurants;

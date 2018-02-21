@@ -1,7 +1,8 @@
     package controllers;
 
+
+    import com.fasterxml.jackson.core.JsonProcessingException;
     import com.fasterxml.jackson.databind.JsonNode;
-    import com.fasterxml.jackson.databind.ObjectMapper;
     import controllers.security.Authenticator;
     import dao.UserDao;
     import models.User;
@@ -14,6 +15,8 @@
     import javax.inject.Inject;
     import java.security.NoSuchAlgorithmException;
     import java.util.List;
+
+
 
     public class UserController extends Controller {
 
@@ -34,8 +37,6 @@
             final String email = jsonNode.get("email").asText();
             final String password = jsonNode.get("password").asText();
             //final String role = jsonNode.get("role").asText();
-            final String role = "User";
-
 
             if (null == userName) {
                 return badRequest("Missing userName");
@@ -52,25 +53,7 @@
             User user = new User();
             user.setUserName(userName);
             user.setEmail(email);
-
-            switch (role) {
-
-                case "Client":
-                    user.setRole(User.Role.Client);
-                    break;
-
-                case "User":
-                    user.setRole(User.Role.User);
-                    break;
-
-                case "Admin":
-                    user.setRole(User.Role.Admin);
-                    break;
-
-                default:
-                    return badRequest("missing role");
-
-            }
+            user.setRole(User.Role.User);
 
             String salt = userDao.generateSalt();
             user.setSalt(salt);
@@ -123,9 +106,13 @@
 
                     userDao.persist(user);
 
-                    ObjectMapper mapper = new ObjectMapper();
 
-                    return ok();
+                    com.fasterxml.jackson.databind.node.ObjectNode result = Json.newObject();
+                    result.put("access_token" , accessToken);
+                    result.put("token_expiry" , expiry);
+                    result.put("refresh_token" , refreshToken);
+
+                    return ok("login successfull!!" + result );
                 }
 
                 return unauthorized("incorrect password");
@@ -210,5 +197,16 @@
             }
 
             return badRequest();
+        }
+
+        @Transactional
+        @Authenticator
+        public Result updateRole(){
+
+            final JsonNode user = (JsonNode) ctx().args.get("user");
+
+
+
+            return ok();
         }
     }

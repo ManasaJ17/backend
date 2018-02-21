@@ -34,7 +34,7 @@
         @Authenticator
         public Result createRestaurant()  {
 
-            LOGGER.debug("in createRestaurant");
+            LOGGER.debug("inside createRestaurant");
 
             final User user = (User) ctx().args.get("user");
             final JsonNode json = Json.toJson(user);
@@ -106,6 +106,24 @@
         public Result getAllRestaurants() {
 
             final List<Restaurant> clients = restaurantDao.findAll();
+
+            final JsonNode jsonNode1 = Json.toJson(clients);
+
+            return ok(jsonNode1);
+        }
+
+        @Transactional
+        @Authenticator
+        public Result getClientRestaurants(){
+
+            final User user = (User) ctx().args.get("user");
+
+            final List<Restaurant> clients = restaurantDao.findByOwner(user);
+
+            if(clients.isEmpty()){
+
+                return badRequest("no restaurants to display!!");
+            }
 
             final JsonNode jsonNode1 = Json.toJson(clients);
 
