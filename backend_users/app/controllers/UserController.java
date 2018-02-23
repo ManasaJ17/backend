@@ -1,212 +1,230 @@
-    package controllers;
+        package controllers;
 
+        import com.fasterxml.jackson.databind.JsonNode;
+        import controllers.security.Authenticator;
+        import dao.UserDao;
+        import models.User;
+        import play.Logger;
+        import play.db.jpa.Transactional;
+        import play.libs.Json;
+        import play.mvc.Controller;
+        import play.mvc.Result;
 
-    import com.fasterxml.jackson.core.JsonProcessingException;
-    import com.fasterxml.jackson.databind.JsonNode;
-    import controllers.security.Authenticator;
-    import dao.UserDao;
-    import models.User;
-    import play.Logger;
-    import play.db.jpa.Transactional;
-    import play.libs.Json;
-    import play.mvc.Controller;
-    import play.mvc.Result;
-
-    import javax.inject.Inject;
-    import java.security.NoSuchAlgorithmException;
-    import java.util.List;
+        import javax.inject.Inject;
+        import java.security.NoSuchAlgorithmException;
+        import java.util.List;
 
 
 
-    public class UserController extends Controller {
+        public class UserController extends Controller {
 
-        private final static Logger.ALogger LOGGER = Logger.of(UserController.class);
+            private final static Logger.ALogger LOGGER = Logger.of(UserController.class);
 
-        private UserDao userDao;
+            private UserDao userDao;
 
-        @Inject
-        public UserController(UserDao userDao) {
-            this.userDao = userDao;
-        }
-
-        @Transactional
-        public Result createUser() throws NoSuchAlgorithmException {
-
-            final JsonNode jsonNode = request().body().asJson();
-            final String userName = jsonNode.get("name").asText();
-            final String email = jsonNode.get("email").asText();
-            final String password = jsonNode.get("password").asText();
-            //final String role = jsonNode.get("role").asText();
-
-            if (null == userName) {
-                return badRequest("Missing userName");
+            @Inject
+            public UserController(UserDao userDao) {
+                this.userDao = userDao;
             }
 
-            if (null == email) {
-                return badRequest("Missing email");
+            @Transactional
+            public Result createUser() throws NoSuchAlgorithmException {
+
+                final JsonNode jsonNode = request().body().asJson();
+                final String userName = jsonNode.get("name").asText();
+                final String email = jsonNode.get("email").asText();
+                final String password = jsonNode.get("password").asText();
+                //final String role = jsonNode.get("role").asText();
+
+                if (null == userName) {
+                    return badRequest("Missing userName");
+                }
+
+                if (null == email) {
+                    return badRequest("Missing email");
+                }
+
+                if (null == password) {
+                    return badRequest("Missing password");
+                }
+
+                User user = new User();
+                user.setUserName(userName);
+                user.setEmail(email);
+                user.setRole(User.Role.User);
+
+                String salt = userDao.generateSalt();
+                user.setSalt(salt);
+
+                String hashedPassword = userDao.hashedPassword(password, salt, 30);
+                user.setPassword(hashedPassword);
+
+                user = userDao.persist(user);
+
+                return created(user.getUserName().toString());
             }
 
-            if (null == password) {
-                return badRequest("Missing password");
+
+            @Transactional
+            public Result login() throws NoSuchAlgorithmException {
+
+                final JsonNode jsonNode = request().body().asJson();
+                final String userName = jsonNode.get("name").asText();
+                final String pwd = jsonNode.get("password").asText();
+
+                if (null == userName) {
+                    return badRequest("Missing userName");
+                }
+
+                if (null == pwd) {
+                    return badRequest("Missing password");
+                }
+
+                final User user = userDao.getUser(userName);
+                LOGGER.debug("Got result");
+
+                LOGGER.debug(String.valueOf(user));
+
+                if (null != user) {
+
+                    String salt = user.getSalt().toString();
+
+                    String hashedPassword = userDao.hashedPassword(pwd, salt, 30);
+
+                    if (user.getPassword().equals(hashedPassword)) {
+
+                        String accessToken = userDao.generateToken();
+                        user.setToken(accessToken);
+
+                        String refreshToken = userDao.generateRefreshToken();
+                        user.setRefreshToken(refreshToken);
+
+                        Long expiry = userDao.generateExpiryTime();
+                        user.setTokenExpire(expiry);
+
+                        userDao.persist(user);
+
+
+                        com.fasterxml.jackson.databind.node.ObjectNode result = Json.newObject();
+                        result.put("access_token" , accessToken);
+                        result.put("token_expiry" , expiry);
+                        result.put("refresh_token" , refreshToken);
+                        result.put("role",user.getRole().toString());
+
+                        return ok( result );
+                    }
+
+                    return unauthorized("incorrect password");
+                }
+
+                return unauthorized("login unsuccessful!!");
+
             }
 
-            User user = new User();
-            user.setUserName(userName);
-            user.setEmail(email);
-            user.setRole(User.Role.User);
 
-            String salt = userDao.generateSalt();
-            user.setSalt(salt);
+            @Transactional
+            @Authenticator
+            public Result getCurrentUser() {
 
-            String hashedPassword = userDao.hashedPassword(password, salt, 30);
-            user.setPassword(hashedPassword);
+                LOGGER.debug("Get current user");
 
-            user = userDao.persist(user);
+                final JsonNode user = (JsonNode) ctx().args.get("user");
 
-            return created(user.getUserName().toString());
-        }
+                LOGGER.debug("User: {}", user);
 
-
-        @Transactional
-        public Result login() throws NoSuchAlgorithmException {
-
-            final JsonNode jsonNode = request().body().asJson();
-            final String userName = jsonNode.get("name").asText();
-            final String pwd = jsonNode.get("password").asText();
-
-            if (null == userName) {
-                return badRequest("Missing userName");
+                return ok(user);
             }
 
-            if (null == pwd) {
-                return badRequest("Missing password");
+            @Transactional
+            public Result getAllUsers() {
+
+                final List<User> users = userDao.findAll();
+
+                final JsonNode jsonNode1 = Json.toJson(users);
+
+                return ok(jsonNode1);
             }
 
-            final User user = userDao.getUser(userName);
-            LOGGER.debug("Got result");
+            @Transactional
+            @Authenticator
+            public Result changePassword() throws NoSuchAlgorithmException {
 
-            LOGGER.debug(String.valueOf(user));
+                final JsonNode jsonNode = request().body().asJson();
+                final String oldPassword = jsonNode.get("old_password").asText();
+                final String newPassword = jsonNode.get("new_password").asText();
 
-            if (null != user) {
+                if (null == oldPassword) {
+                    return badRequest("Missing current password");
+                }
 
-                String salt = user.getSalt().toString();
+                if (null == newPassword) {
+                    return badRequest("Missing new password");
+                }
 
-                String hashedPassword = userDao.hashedPassword(pwd, salt, 30);
+                LOGGER.debug("Got current user");
+
+                final User user = (User) ctx().args.get("user");
+
+                String salt = user.getSalt();
+                String hashedPassword = userDao.hashedPassword(oldPassword, salt, 30);
 
                 if (user.getPassword().equals(hashedPassword)) {
+                    LOGGER.debug("passwords matched");
+
+                    String newHashedPassword = userDao.hashedPassword(newPassword, salt, 30);
+                    user.setPassword(newHashedPassword);
+                    userDao.persist(user);
+
+                    return ok("Changed the password");
+                }
+
+              return badRequest("enter correct password");
+
+            }
+
+            @Transactional
+            public Result forgotPassword (){
+
+                final JsonNode jsonNode = request().body().asJson();
+                //final String email = jsonNode.get("email").asText();
+
+               //User user = userDao.getUser(email);
+
+
+
+                return badRequest();
+            }
+
+            @Transactional
+            public Result resetAccessToken(){
+
+                final JsonNode jsonNode = request().body().asJson();
+                final String refreshToken = jsonNode.get("refresh_token").asText();
+
+                User user = userDao.findRefreshToken(refreshToken);
+
+                if( user.getRefreshToken().equals(refreshToken) ){
 
                     String accessToken = userDao.generateToken();
                     user.setToken(accessToken);
 
-                    String refreshToken = userDao.generateRefreshToken();
-                    user.setRefreshToken(refreshToken);
+                    JsonNode json = Json.toJson(userDao.persist(user));
 
-                    Long expiry = userDao.generateExpiryTime();
-                    user.setTokenExpire(expiry);
+                    return ok(json);
 
-                    userDao.persist(user);
-
-
-                    com.fasterxml.jackson.databind.node.ObjectNode result = Json.newObject();
-                    result.put("access_token" , accessToken);
-                    result.put("token_expiry" , expiry);
-                    result.put("refresh_token" , refreshToken);
-
-                    return ok("login successfull!!" + result );
                 }
 
-                return unauthorized("incorrect password");
+                return badRequest();
             }
 
-            return unauthorized("login unsuccessful!!");
+            /*@Transactional
+            @Authenticator
+            public Result updateRole(){
 
+                final JsonNode user = (JsonNode) ctx().args.get("user");
+
+
+
+                return ok();
+            }*/
         }
-
-
-        @Transactional
-        @Authenticator
-        public Result getCurrentUser() {
-
-            LOGGER.debug("Get current user");
-
-            final JsonNode user = (JsonNode) ctx().args.get("user");
-
-            LOGGER.debug("User: {}", user);
-
-            return ok(user);
-        }
-
-        @Transactional
-        public Result getAllUsers() {
-
-            final List<User> users = userDao.findAll();
-
-            final JsonNode jsonNode1 = Json.toJson(users);
-
-            return ok(jsonNode1);
-        }
-
-        /*@Transactional
-        public Result resetPassword() throws NoSuchAlgorithmException {
-
-            final JsonNode jsonNode = request().body().asJson();
-            final String email = jsonNode.get("email").asText();
-            final String newPassword = jsonNode.get("password").asText();
-
-            if (null == email) {
-                return badRequest("Missing email");
-            }
-
-            if (null == newPassword) {
-                return badRequest("Missing password");
-            }
-
-            final JsonNode user = userDao.getUser(email);
-
-            if (null != user) {
-
-                String salt = user.findValue("salt").asText();
-                String hashedPassword = userDao.hashedPassword(newPassword, salt, 30);
-
-                userDao.updatePassword(hashedPassword, email);
-
-                return ok("Changed the password");
-
-            }
-
-            return badRequest();
-        }*/
-
-        @Transactional
-        public Result resetAccessToken(){
-
-            final JsonNode jsonNode = request().body().asJson();
-            final String refreshToken = jsonNode.get("refresh_token").asText();
-
-            User user = userDao.findRefreshToken(refreshToken);
-
-            if( user.getRefreshToken().equals(refreshToken) ){
-
-                String accessToken = userDao.generateToken();
-                user.setToken(accessToken);
-
-                JsonNode json = Json.toJson(userDao.persist(user));
-
-                return ok(json);
-
-            }
-
-            return badRequest();
-        }
-
-        @Transactional
-        @Authenticator
-        public Result updateRole(){
-
-            final JsonNode user = (JsonNode) ctx().args.get("user");
-
-
-
-            return ok();
-        }
-    }

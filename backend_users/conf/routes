@@ -12,10 +12,12 @@ POST /users/login                   controllers.UserController.login()
 
 GET /users/me                       controllers.UserController.getCurrentUser()
 
-# POST /user/reset                    controllers.UserController.resetPassword()
++ nocsrf
+POST /user/changeP                    controllers.UserController.changePassword()
 
 POST /user/newToken                    controllers.UserController.resetAccessToken()
 
+GET /mail/:recipient                            controllers.MailerService.sendEmail(recipient : String)
 
 # Restaurant
 
