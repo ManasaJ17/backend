@@ -39,14 +39,14 @@ package controllers;
 
                 final JsonNode jsonNode = request().body().asJson();
                 final String name = jsonNode.get("name").asText();
-                final String type = jsonNode.get("type").asText();
+                //final String type = jsonNode.get("type").asText();
                 final String address = jsonNode.get("address").asText();
                 final Long contact = jsonNode.get("contact").asLong();
                 final String hpUrl = jsonNode.get("hpUrl").asText();
                 final String fbUrl = jsonNode.get("fbUrl").asText();
                 final Integer cost = jsonNode.get("cost").asInt();
-                final Double latitude = jsonNode.get("latitude").asDouble();
-                final Double longitude = jsonNode.get("longitude").asDouble();
+                final Double latitude = jsonNode.get("lat").asDouble();
+                final Double longitude = jsonNode.get("lng").asDouble();
 
                 if (null == name) {
                     return badRequest("Missing restaurant name");
@@ -83,7 +83,7 @@ package controllers;
 
                 Restaurant restaurant = new Restaurant();
                 restaurant.setName(name);
-                restaurant.setType(type);
+                restaurant.setType("foodtruck");
                 restaurant.setContact(contact);
                 restaurant.setAddress(address);
                 restaurant.setHomepageUrl(hpUrl);
@@ -100,6 +100,7 @@ package controllers;
                        LOGGER.debug("inside null res list");
                        List<Restaurant> res = new ArrayList<>();
                        res.add(restaurant);
+                       LOGGER.debug("added res list");
                        user.setRestaurants(res);
                 }
                 else {
@@ -109,8 +110,13 @@ package controllers;
                 }
 
                 userDao.persist(user);
+                LOGGER.debug("created res");
 
-                return created(restaurant.getName().toString() + "  will be reviewed");
+
+                com.fasterxml.jackson.databind.node.ObjectNode json = Json.newObject();
+                json.put("name", restaurant.getName());
+
+                return created(json);
 
 
             }
@@ -126,7 +132,6 @@ package controllers;
             }
 
             @Transactional
-            @Authenticator
             public Result getAllRestaurants() {
 
                 final List<Restaurant> clients = restaurantDao.findAll();

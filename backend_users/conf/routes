@@ -10,6 +10,7 @@ GET /users                          controllers.UserController.getAllUsers()
 
 POST /users/login                   controllers.UserController.login()
 
++ nocsrf
 GET /users/me                       controllers.UserController.getCurrentUser()
 
 + nocsrf
@@ -17,7 +18,9 @@ POST /user/changeP                    controllers.UserController.changePassword(
 
 POST /user/newToken                    controllers.UserController.resetAccessToken()
 
-GET /mail/:recipient                            controllers.MailerService.sendEmail(recipient : String)
+GET /mail/:recipient                   controllers.MailerService.forgotPassword(recipient : String)
+
+POST /user/reset                       controllers.MailerService.resetPassword()
 
 # Restaurant
 

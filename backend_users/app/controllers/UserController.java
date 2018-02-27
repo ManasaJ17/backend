@@ -3,6 +3,7 @@
         import com.fasterxml.jackson.databind.JsonNode;
         import controllers.security.Authenticator;
         import dao.UserDao;
+        import jdk.nashorn.internal.ir.ObjectNode;
         import models.User;
         import play.Logger;
         import play.db.jpa.Transactional;
@@ -30,11 +31,12 @@
             @Transactional
             public Result createUser() throws NoSuchAlgorithmException {
 
+                LOGGER.debug("inside CreateUser method");
+
                 final JsonNode jsonNode = request().body().asJson();
                 final String userName = jsonNode.get("name").asText();
                 final String email = jsonNode.get("email").asText();
                 final String password = jsonNode.get("password").asText();
-                //final String role = jsonNode.get("role").asText();
 
                 if (null == userName) {
                     return badRequest("Missing userName");
@@ -46,6 +48,11 @@
 
                 if (null == password) {
                     return badRequest("Missing password");
+                }
+
+                if (null != userDao.getUserByName(userName) || null !=userDao.getUserByEmail(email)) {
+                    LOGGER.debug("user already exists");
+                    return badRequest("user already exists");
                 }
 
                 User user = new User();
@@ -61,12 +68,15 @@
 
                 user = userDao.persist(user);
 
+                LOGGER.debug("User created");
                 return created(user.getUserName().toString());
             }
 
 
             @Transactional
             public Result login() throws NoSuchAlgorithmException {
+
+                LOGGER.debug("inside login method");
 
                 final JsonNode jsonNode = request().body().asJson();
                 final String userName = jsonNode.get("name").asText();
@@ -80,10 +90,8 @@
                     return badRequest("Missing password");
                 }
 
-                final User user = userDao.getUser(userName);
-                LOGGER.debug("Got result");
-
-                LOGGER.debug(String.valueOf(user));
+                final User user = userDao.getUserByName(userName);
+                LOGGER.debug("Got result in login");
 
                 if (null != user) {
 
@@ -93,7 +101,7 @@
 
                     if (user.getPassword().equals(hashedPassword)) {
 
-                        String accessToken = userDao.generateToken();
+                        String accessToken = userDao.generateAccessToken();
                         user.setToken(accessToken);
 
                         String refreshToken = userDao.generateRefreshToken();
@@ -110,6 +118,8 @@
                         result.put("token_expiry" , expiry);
                         result.put("refresh_token" , refreshToken);
                         result.put("role",user.getRole().toString());
+
+                        LOGGER.debug("end of login successful");
 
                         return ok( result );
                     }
@@ -128,11 +138,15 @@
 
                 LOGGER.debug("Get current user");
 
-                final JsonNode user = (JsonNode) ctx().args.get("user");
+                final User user = (User) ctx().args.get("user");
 
                 LOGGER.debug("User: {}", user);
+                com.fasterxml.jackson.databind.node.ObjectNode json = Json.newObject();
+                json.put("userName", user.getUserName());
+                json.put("email", user.getEmail());
+                json.put("role",user.getRole().toString());
 
-                return ok(user);
+                return ok(json);
             }
 
             @Transactional
@@ -183,19 +197,6 @@
             }
 
             @Transactional
-            public Result forgotPassword (){
-
-                final JsonNode jsonNode = request().body().asJson();
-                //final String email = jsonNode.get("email").asText();
-
-               //User user = userDao.getUser(email);
-
-
-
-                return badRequest();
-            }
-
-            @Transactional
             public Result resetAccessToken(){
 
                 final JsonNode jsonNode = request().body().asJson();
@@ -205,7 +206,7 @@
 
                 if( user.getRefreshToken().equals(refreshToken) ){
 
-                    String accessToken = userDao.generateToken();
+                    String accessToken = userDao.generateAccessToken();
                     user.setToken(accessToken);
 
                     JsonNode json = Json.toJson(userDao.persist(user));

@@ -42,9 +42,9 @@
                 return users;
             }
 
-            public User getUser(String name) {
+            public User getUserByName(String name) {
 
-                String str = "SELECT u FROM User u WHERE u.userName = :name OR u.email = :name";
+                String str = "SELECT u FROM User u WHERE u.userName = :name";
                 TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
                 query.setParameter("name", name);
 
@@ -58,7 +58,23 @@
                 return user;
             }
 
-            public static String generateToken() {
+            public User getUserByEmail(String email) {
+
+                String str = "SELECT u FROM User u WHERE u.email = :name";
+                TypedQuery<User> query = jpaApi.em().createQuery(str, User.class);
+                query.setParameter("name", email);
+
+                List<User> result = query.getResultList();
+
+                if(result.isEmpty()){
+                    return null;
+                }
+
+                User user = result.get(0);
+                return user;
+            }
+
+            public static String generateAccessToken() {
 
 
                 SecureRandom random = new SecureRandom();
