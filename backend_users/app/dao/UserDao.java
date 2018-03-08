@@ -1,12 +1,9 @@
         package dao;
 
 
-        import com.fasterxml.jackson.databind.JsonNode;
         import com.google.inject.Inject;
         import models.User;
         import play.db.jpa.JPAApi;
-        import play.libs.Json;
-
         import javax.persistence.Query;
         import javax.persistence.TypedQuery;
         import java.nio.charset.StandardCharsets;
@@ -95,9 +92,9 @@
                 return refreshToken;
             }
 
-            public static Long generateExpiryTime ( ){
+            public static Long generateExpiryTime ( int timeLimit){
 
-                Timestamp timestamp = new Timestamp(System.currentTimeMillis() + (12*60*60*1000));
+                Timestamp timestamp = new Timestamp(System.currentTimeMillis() + (timeLimit*60*1000));
                 Long expiry = timestamp.getTime() ;
 
                 return expiry;

@@ -5,6 +5,7 @@
     import models.User;
     import play.db.jpa.JPAApi;
 
+    import javax.persistence.Query;
     import javax.persistence.TypedQuery;
     import java.util.List;
 
@@ -56,6 +57,42 @@
             }
 
             return true;
+        }
+
+        public Restaurant getRestaurant(String name, String address){
+
+            TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE r.name = :name AND r.address = :address ", Restaurant.class);
+            query.setParameter("name", name);
+            query.setParameter("address", address);
+            List<Restaurant> result = query.getResultList();
+
+            Restaurant restaurant = result.get(0);
+
+            return (restaurant);
+
+        }
+
+        public Restaurant getRestaurantById(int id){
+            TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE r.Id = :id ", Restaurant.class);
+            query.setParameter("id", id);
+            List<Restaurant> result = query.getResultList();
+            Restaurant restaurant = result.get(0);
+
+            return (restaurant);
+        }
+
+
+        public List<Restaurant> searchRestaurant(String search) {
+
+            TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE r.area = :search OR r.name = :search ", Restaurant.class);
+            query.setParameter("search", search);
+            List<Restaurant> result = query.getResultList();
+
+           if (result.isEmpty()){
+               return null;
+           }
+           return result;
+
         }
 
 

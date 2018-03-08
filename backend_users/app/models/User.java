@@ -1,15 +1,9 @@
             package models;
-
             import com.fasterxml.jackson.annotation.*;
-            import scala.Int;
-
             import javax.persistence.*;
-            import java.util.ArrayList;
             import java.util.List;
-            import java.util.Set;
 
             @Entity
-            //@JsonIgnoreProperties({ "password" , "email" , "salt", "role"})
             public class User {
 
                 public enum Role {
@@ -46,6 +40,12 @@
                 @JsonManagedReference
                 @OneToMany(mappedBy = "owner")
                 private List<Restaurant> restaurants;
+
+               //@Basic
+                //String imagePath;
+               @Basic
+               String likes;
+
 
 
                 public User() {
@@ -86,21 +86,29 @@
                 }
 
                 //@JsonIgnore
-                public Role getRole() { return role; }
+                public Role getRole() {
+                    return role;
+                }
 
-                public void setRole(Role role) { this.role = role; }
+                public void setRole(Role role) {
+                    this.role = role;
+                }
 
                 public String getToken() {
                     return token;
                 }
 
-                public void setToken(String token) {  this.token = token; }
+                public void setToken(String token) {
+                    this.token = token;
+                }
 
                 public Long getTokenExpire() {
                     return tokenExpire;
                 }
 
-                public void setTokenExpire(Long tokenExpire) { this.tokenExpire = tokenExpire; }
+                public void setTokenExpire(Long tokenExpire) {
+                    this.tokenExpire = tokenExpire;
+                }
 
                 public String getRefreshToken() {
                     return refreshToken;
@@ -125,4 +133,21 @@
                 public void setRestaurants(List<Restaurant> restaurants) {
                     this.restaurants = restaurants;
                 }
+
+
+                public String getLikes() {
+                    return likes;
+                }
+
+                public void setLikes(String likes) {
+                    this.likes = likes;
+                }
+
+               /* public String getImagePath() {
+                    return imagePath;
+                }
+
+                public void setImagePath(String imagePath) {
+                    this.imagePath = imagePath;
+                }*/
             }

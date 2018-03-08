@@ -3,36 +3,57 @@
 
 
 # ~~~~ User
-
++ nocsrf
 POST /users                         controllers.UserController.createUser()
 
 GET /users                          controllers.UserController.getAllUsers()
 
++ nocsrf
 POST /users/login                   controllers.UserController.login()
 
 + nocsrf
 GET /users/me                       controllers.UserController.getCurrentUser()
 
 + nocsrf
-POST /user/changeP                    controllers.UserController.changePassword()
+POST /user/changeP                  controllers.UserController.updatePassword()
++ nocsrf
+POST /user/newToken                 controllers.UserController.resetAccessToken()
 
-POST /user/newToken                    controllers.UserController.resetAccessToken()
+GET /mail/:recipient                controllers.MailerService.forgotPassword(recipient : String)
 
-GET /mail/:recipient                   controllers.MailerService.forgotPassword(recipient : String)
++ nocsrf
+POST /user/edit                     controllers.UserController.updateProfile()
 
-POST /user/reset                       controllers.MailerService.resetPassword()
+
++ nocsrf
+POST /user/reset                    controllers.MailerService.resetPassword()
+
 
 # Restaurant
 
- + nocsrf
- POST /new/restaurant                controllers.RestaurantController.createRestaurant()
++ nocsrf
+POST /new/restaurant               controllers.RestaurantController.createRestaurant()
 
-  GET /restaurant                 controllers.RestaurantController.getAllRestaurants()
+GET /restaurant                    controllers.RestaurantController.getAllRestaurants()
 
- GET /restaurant/owner      controllers.RestaurantController.getClientRestaurants()
+GET /restaurant/owner              controllers.RestaurantController.getClientRestaurants()
+
+GET /restaurant/get/:Id             controllers.RestaurantController.getRestaurantById(Id : Integer)
+
++ nocsrf
+POST /restaurant/edit            controllers.RestaurantController.updateRestaurant()
+
++ nocsrf
+POST /restaurant/search          controllers.RestaurantController.getRestaurantsBySearch()
 
 
+# Image controller
++ nocsrf
+POST /images                        controllers.ImageController.uploadImage()
 
+GET /images/:id                     controllers.ImageController.downloadImage(id: String)
+
+DELETE /images/:id                  controllers.ImageController.deleteImage(id: String)
 
 
 

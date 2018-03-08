@@ -1,17 +1,13 @@
         package controllers.security;
 
-        import com.fasterxml.jackson.databind.JsonNode;
         import com.google.inject.Inject;
         import dao.UserDao;
         import models.User;
         import play.Logger;
-        import play.libs.Json;
         import play.mvc.Action;
         import play.mvc.Http;
         import play.mvc.Result;
-
         import java.sql.Timestamp;
-        import java.util.List;
         import java.util.Optional;
         import java.util.concurrent.CompletableFuture;
         import java.util.concurrent.CompletionStage;
@@ -53,10 +49,11 @@
                     return CompletableFuture.completedFuture(unauthorized());
                 }
 
-                /*Long expiryTime = new Timestamp(System.currentTimeMillis()).getTime();
-                if ((expiryTime > user.findValue("expiry_token").asLong() )){
+                Long currentTime = new Timestamp(System.currentTimeMillis()).getTime();
+                if(currentTime > user.getTokenExpire()) {
+                    LOGGER.debug("time expired");
                     return CompletableFuture.completedFuture(unauthorized());
-                }*/
+                }
 
                 LOGGER.debug("User: {}", user);
 

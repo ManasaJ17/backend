@@ -1,6 +1,4 @@
     package models;
-
-
     import com.fasterxml.jackson.annotation.JsonBackReference;
     import javax.persistence.*;
 
@@ -22,10 +20,19 @@
         String type;
 
         @Basic
+        String cuisine;
+
+        @Basic
         String address;
 
         @Basic
+        String area;
+
+        @Basic
         Long contact;
+
+        @Basic
+        String timings;
 
         @Basic
         String homepageUrl;
@@ -50,15 +57,12 @@
         @ManyToOne
         private User owner;
 
-        //Boolean isReviewed;
-
-        //Boolean isApproved;
-
-
-
         public Restaurant() {
         }
 
+        public Integer getId() {
+            return Id;
+        }
 
         public String getName() {
             return name;
@@ -124,13 +128,21 @@
             this.status = status;
         }
 
-        public Double getLatitude() { return latitude; }
+        public Double getLatitude() {
+            return latitude;
+        }
 
-        public void setLatitude(Double latitude) { this.latitude = latitude; }
+        public void setLatitude(Double latitude) {
+            this.latitude = latitude;
+        }
 
-        public Double getLongitude() { return longitude; }
+        public Double getLongitude() {
+            return longitude;
+        }
 
-        public void setLongitude(Double longitude) { this.longitude = longitude;}
+        public void setLongitude(Double longitude) {
+            this.longitude = longitude;
+        }
 
         public User getOwner() {
             return owner;
@@ -138,5 +150,29 @@
 
         public void setOwner(User owner) {
             this.owner = owner;
+        }
+
+        public String getArea() {
+            return area;
+        }
+
+        public void setArea(String area) {
+            this.area = area;
+        }
+
+        public String getCuisine() {
+            return cuisine;
+        }
+
+        public void setCuisine(String cuisine) {
+            this.cuisine = cuisine;
+        }
+
+        public String getTimings() {
+            return timings;
+        }
+
+        public void setTimings(String timings) {
+            this.timings = timings;
         }
     }

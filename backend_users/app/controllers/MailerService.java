@@ -38,8 +38,12 @@ public class MailerService extends Controller {
         LOGGER.debug("Inside forgotPassword method");
 
         User user  = userDao.getUserByEmail(email);
+        if (user == null ){
+            return badRequest();
+        }
+
         String recoveryToken  = userDao.generateAccessToken();
-        Long timeStamp  = userDao.generateExpiryTime();
+        Long timeStamp  = userDao.generateExpiryTime(10);
 
         F.Tuple<User, Long> tuple = new F.Tuple(user, timeStamp);
 
@@ -64,14 +68,14 @@ public class MailerService extends Controller {
 
             LOGGER.debug("Inside mail try");
 
-            String url="https://localhost/forgotPassword";
+            String url="http://localhost:3000/forgotpassword/";
             SMTPMessage message = new SMTPMessage(session);
             message.setFrom(new InternetAddress("platrovaservice@gmail.com"));
             message.setRecipients(Message.RecipientType.TO,
                     InternetAddress.parse( email));
 
             message.setSubject("Forgot Password");
-            message.setText("To reset password, click here:\n"+url+"/reset?token=" + recoveryToken);
+            message.setText("To reset password, click here:\n" + url + recoveryToken);
 
             message.setNotifyOptions(SMTPMessage.NOTIFY_SUCCESS);
 
@@ -100,7 +104,7 @@ public class MailerService extends Controller {
 
         final JsonNode jsonNode = request().body().asJson();
         final String newPassword = jsonNode.get("newPassword").asText();
-        final String userToken = jsonNode.get("token").asText();
+        final String userToken = jsonNode.get("id").asText();
 
         LOGGER.debug("this is token:" + userToken);
 

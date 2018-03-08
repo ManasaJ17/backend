@@ -13,6 +13,7 @@ libraryDependencies += guice
 libraryDependencies += "com.typesafe.play" %% "play-mailer" % "6.0.1"
 libraryDependencies += "com.typesafe.play" %% "play-mailer-guice" % "6.0.1"
 
+libraryDependencies += "com.google.code.gson" % "gson" % "2.2.4"
 // Test Database
 //libraryDependencies += "com.h2database" % "h2" % "1.4.196"
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.36"

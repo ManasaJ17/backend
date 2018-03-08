@@ -3,14 +3,12 @@
         import com.fasterxml.jackson.databind.JsonNode;
         import controllers.security.Authenticator;
         import dao.UserDao;
-        import jdk.nashorn.internal.ir.ObjectNode;
         import models.User;
         import play.Logger;
         import play.db.jpa.Transactional;
         import play.libs.Json;
         import play.mvc.Controller;
         import play.mvc.Result;
-
         import javax.inject.Inject;
         import java.security.NoSuchAlgorithmException;
         import java.util.List;
@@ -37,6 +35,8 @@
                 final String userName = jsonNode.get("name").asText();
                 final String email = jsonNode.get("email").asText();
                 final String password = jsonNode.get("password").asText();
+                final String likes = jsonNode.get("likes").asText();
+                //final String imagePath = jsonNode.get("path").asText();
 
                 if (null == userName) {
                     return badRequest("Missing userName");
@@ -59,12 +59,14 @@
                 user.setUserName(userName);
                 user.setEmail(email);
                 user.setRole(User.Role.User);
+                //user.setImagePath(imagePath);
 
                 String salt = userDao.generateSalt();
                 user.setSalt(salt);
 
                 String hashedPassword = userDao.hashedPassword(password, salt, 30);
                 user.setPassword(hashedPassword);
+                user.setLikes(likes);
 
                 user = userDao.persist(user);
 
@@ -107,7 +109,7 @@
                         String refreshToken = userDao.generateRefreshToken();
                         user.setRefreshToken(refreshToken);
 
-                        Long expiry = userDao.generateExpiryTime();
+                        Long expiry = userDao.generateExpiryTime(12*60);
                         user.setTokenExpire(expiry);
 
                         userDao.persist(user);
@@ -121,7 +123,7 @@
 
                         LOGGER.debug("end of login successful");
 
-                        return ok( result );
+                        return ok(result);
                     }
 
                     return unauthorized("incorrect password");
@@ -144,6 +146,7 @@
                 com.fasterxml.jackson.databind.node.ObjectNode json = Json.newObject();
                 json.put("userName", user.getUserName());
                 json.put("email", user.getEmail());
+                json.put("likes",user.getLikes());
                 json.put("role",user.getRole().toString());
 
                 return ok(json);
@@ -161,11 +164,15 @@
 
             @Transactional
             @Authenticator
-            public Result changePassword() throws NoSuchAlgorithmException {
+            public Result updatePassword() throws NoSuchAlgorithmException {
+                LOGGER.debug("Inside updatePassword ");
 
                 final JsonNode jsonNode = request().body().asJson();
-                final String oldPassword = jsonNode.get("old_password").asText();
-                final String newPassword = jsonNode.get("new_password").asText();
+                LOGGER.debug("after Json");
+                final String oldPassword = jsonNode.get("opassword").asText();
+                final String newPassword = jsonNode.get("npassword").asText();
+
+                LOGGER.debug("Taking Json");
 
                 if (null == oldPassword) {
                     return badRequest("Missing current password");
@@ -189,10 +196,17 @@
                     user.setPassword(newHashedPassword);
                     userDao.persist(user);
 
-                    return ok("Changed the password");
-                }
+                    LOGGER.debug("before ok");
 
-              return badRequest("enter correct password");
+                    com.fasterxml.jackson.databind.node.ObjectNode result = Json.newObject();
+                    result.put("userName" ,user.getUserName());
+                    LOGGER.debug(String.valueOf(result));
+
+                    return ok(result);
+                }
+                LOGGER.debug("bad request");
+
+              return badRequest();
 
             }
 
@@ -208,6 +222,8 @@
 
                     String accessToken = userDao.generateAccessToken();
                     user.setToken(accessToken);
+                    Long expiryTime = userDao.generateExpiryTime(12*60);
+                    user.setTokenExpire(expiryTime);
 
                     JsonNode json = Json.toJson(userDao.persist(user));
 
@@ -216,6 +232,29 @@
                 }
 
                 return badRequest();
+            }
+
+            @Transactional
+            @Authenticator
+            public Result updateProfile() {
+
+                LOGGER.debug("inside updateProfile");
+
+                User user = (User) ctx().args.get("user");
+
+                final JsonNode jsonNode = request().body().asJson();
+                final String likes =jsonNode.get("likes").asText();
+
+                user.setLikes(likes);
+                userDao.persist(user);
+
+                LOGGER.debug("User: {}", user);
+                com.fasterxml.jackson.databind.node.ObjectNode json = Json.newObject();
+                json.put("userName", user.getUserName());
+                json.put("email", user.getEmail());
+                json.put("likes",user.getLikes());
+
+                return ok(json);
             }
 
             /*@Transactional
@@ -228,4 +267,7 @@
 
                 return ok();
             }*/
+
+
         }
+
