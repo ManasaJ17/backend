@@ -1,6 +1,7 @@
         package controllers;
 
         import com.fasterxml.jackson.databind.JsonNode;
+        import com.sun.mail.smtp.SMTPMessage;
         import controllers.security.Authenticator;
         import dao.UserDao;
         import models.User;
@@ -10,9 +11,11 @@
         import play.mvc.Controller;
         import play.mvc.Result;
         import javax.inject.Inject;
+        import javax.mail.*;
+        import javax.mail.internet.InternetAddress;
         import java.security.NoSuchAlgorithmException;
         import java.util.List;
-
+        import java.util.Properties;
 
 
         public class UserController extends Controller {
@@ -222,12 +225,19 @@
 
                     String accessToken = userDao.generateAccessToken();
                     user.setToken(accessToken);
+
                     Long expiryTime = userDao.generateExpiryTime(12*60);
                     user.setTokenExpire(expiryTime);
 
-                    JsonNode json = Json.toJson(userDao.persist(user));
+                    userDao.persist(user);
 
-                    return ok(json);
+                    com.fasterxml.jackson.databind.node.ObjectNode result = Json.newObject();
+                    result.put("access_token" , accessToken);
+                    result.put("token_expiry" , expiryTime);
+                    result.put("refresh_token" , refreshToken);
+                    result.put("role",user.getRole().toString());
+
+                    return ok(result);
 
                 }
 
@@ -257,16 +267,146 @@
                 return ok(json);
             }
 
-            /*@Transactional
+            @Transactional
             @Authenticator
-            public Result updateRole(){
+            public Result logout(){
 
-                final JsonNode user = (JsonNode) ctx().args.get("user");
+                LOGGER.debug("inside logout");
+                final User user = (User) ctx().args.get("user");
+
+               user.setToken(null);
+               user.setTokenExpire(null);
+               user.setRefreshToken(null);
+
+               userDao.persist(user);
+
+               LOGGER.debug("logout successfull!!");
+               return ok("Logout successfull!!");
+            }
 
 
+            @Transactional
+            @Authenticator
+            public Result emailToAdmin(){
 
-                return ok();
-            }*/
+                LOGGER.debug("Inside mailer method");
+
+                User user = (User) ctx().args.get("user");
+                final String email = user.getEmail();
+
+                JsonNode jsonNode = request().body().asJson();
+                final String name = jsonNode.get("fname").asText();
+                final long contact = jsonNode.get("contact").asLong();
+
+
+                user.setContact(contact);
+
+                Properties props = new Properties();
+                props.put("mail.smtp.host", "smtp.gmail.com");
+                props.put("mail.smtp.socketFactory.port", "465");
+                props.put("mail.smtp.socketFactory.class",
+                        "javax.net.ssl.SSLSocketFactory");
+                props.put("mail.smtp.auth", "true");
+                props.put("mail.smtp.port", "587");
+
+                Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication("platrovacare02@gmail.com","Platrova1234");
+                    }
+                });
+
+                try {
+
+                    LOGGER.debug("Inside mail try");
+
+                    String url = "http://localhost:9000/user/role/";
+
+                    SMTPMessage message = new SMTPMessage(session);
+                    message.setFrom(new InternetAddress("platrovacare02@gmail.com"));
+                    message.setRecipients(Message.RecipientType.TO,
+                            InternetAddress.parse( "platrovaservice@gmail.com"));
+
+                    message.setSubject("Received mail from" + email);
+                    message.setText("Make " + name + " as Client after verifying.\n Details:\n Contact: " + contact + "\n emailid: " + email + "\nClick the link below to update the role after verifying the Client:\n "+ url + email);
+
+                    message.setNotifyOptions(SMTPMessage.NOTIFY_SUCCESS);
+
+                    Transport.send(message);
+
+                    System.out.println("sent");
+                    userDao.persist(user);
+
+                }
+
+                catch (MessagingException e) {
+
+                    LOGGER.debug("Inside mail catch");
+                    throw new RuntimeException(e);
+                }
+
+                return ok("working");
+            }
+
+
+            @Transactional
+            public Result updateRole(String email){
+
+                User user = userDao.getUserByEmail(email);
+                user.setRole(User.Role.Client);
+
+                userDao.persist(user);
+                LOGGER.debug(user.getRole().toString());
+
+                Properties props = new Properties();
+                props.put("mail.smtp.host", "smtp.gmail.com");
+                props.put("mail.smtp.socketFactory.port", "465");
+                props.put("mail.smtp.socketFactory.class",
+                        "javax.net.ssl.SSLSocketFactory");
+                props.put("mail.smtp.auth", "true");
+                props.put("mail.smtp.port", "587");
+
+                Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication("platrovaservice@gmail.com","Platrova1234");
+                    }
+                });
+
+                try {
+
+                    LOGGER.debug("Inside mail try");
+
+                    String url="http://localhost:3000/login";
+                    SMTPMessage message = new SMTPMessage(session);
+                    message.setFrom(new InternetAddress("platrovaservice@gmail.com"));
+                    message.setRecipients(Message.RecipientType.TO,
+                            InternetAddress.parse(email));
+
+                    message.setSubject("Approval Mail");
+                    message.setText("Hey " + user.getUserName() +",\n Congratulations on becoming a Client.\n Click here to login:  " + url);
+
+                    message.setNotifyOptions(SMTPMessage.NOTIFY_SUCCESS);
+
+                    Transport.send(message);
+
+                    System.out.println("sent");
+
+                }
+
+                catch (MessagingException e) {
+
+                    LOGGER.debug("Inside mail catch");
+                    throw new RuntimeException(e);
+                }
+
+                LOGGER.debug("");
+
+                return ok("Role updated & approval mail is sent to the Client");
+
+            }
+
+
 
 
         }

@@ -103,8 +103,8 @@ public class MailerService extends Controller {
         LOGGER.debug("Inside resetPassword");
 
         final JsonNode jsonNode = request().body().asJson();
-        final String newPassword = jsonNode.get("newPassword").asText();
-        final String userToken = jsonNode.get("id").asText();
+        final String newPassword = jsonNode.get("password").asText();
+        final String userToken = jsonNode.get("token").asText();
 
         LOGGER.debug("this is token:" + userToken);
 

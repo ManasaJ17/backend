@@ -53,6 +53,9 @@
         Double longitude;
 
         @Basic
+        String imagePath;
+
+        @Basic
         @JsonBackReference
         @ManyToOne
         private User owner;
@@ -174,5 +177,13 @@
 
         public void setTimings(String timings) {
             this.timings = timings;
+        }
+
+        public String getImagePath() {
+            return imagePath;
+        }
+
+        public void setImagePath(String imagePath) {
+            this.imagePath = imagePath;
         }
     }

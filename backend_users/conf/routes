@@ -2,7 +2,8 @@
 # This file defines all application routes (Higher priority routes first)
 
 
-# ~~~~ User
+# ----------------- User ---------------------
+
 + nocsrf
 POST /users                         controllers.UserController.createUser()
 
@@ -19,17 +20,27 @@ POST /user/changeP                  controllers.UserController.updatePassword()
 + nocsrf
 POST /user/newToken                 controllers.UserController.resetAccessToken()
 
-GET /mail/:recipient                controllers.MailerService.forgotPassword(recipient : String)
-
 + nocsrf
 POST /user/edit                     controllers.UserController.updateProfile()
 
+GET /user/logout                     controllers.UserController.logout()
+
++ nocsrf
+POST /user/makeClient               controllers.UserController.emailToAdmin()
+
+GET /user/role/:email                     controllers.UserController.updateRole(email : String)
+
+
+# ----------------- MailerService -------------------------
+
+GET /mail/:email              controllers.MailerService.forgotPassword(email : String)
 
 + nocsrf
 POST /user/reset                    controllers.MailerService.resetPassword()
 
 
-# Restaurant
+
+# ----------------- Restaurant -----------------------------
 
 + nocsrf
 POST /new/restaurant               controllers.RestaurantController.createRestaurant()
@@ -46,14 +57,26 @@ POST /restaurant/edit            controllers.RestaurantController.updateRestaura
 + nocsrf
 POST /restaurant/search          controllers.RestaurantController.getRestaurantsBySearch()
 
++ nocsrf
+POST /restaurant/nearBy          controllers.RestaurantController.getNearByRestaurants()
 
-# Image controller
+GET /restaurant/popular            controllers.RestaurantController.getPopularRestaurants()
+
+GET /restaurant/status/:status/:id            controllers.RestaurantController.updateStatus(status : Integer , id : Integer)
+
+
+# -------------------- Image controller ----------------------------
+
 + nocsrf
 POST /images                        controllers.ImageController.uploadImage()
 
 GET /images/:id                     controllers.ImageController.downloadImage(id: String)
 
 DELETE /images/:id                  controllers.ImageController.deleteImage(id: String)
+
+
+
+
 
 
 

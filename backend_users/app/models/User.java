@@ -41,12 +41,14 @@
                 @OneToMany(mappedBy = "owner")
                 private List<Restaurant> restaurants;
 
-               //@Basic
-                //String imagePath;
+               @Basic
+               String imagePath;
+
                @Basic
                String likes;
 
-
+               @Basic
+               long contact;
 
                 public User() {
 
@@ -143,11 +145,18 @@
                     this.likes = likes;
                 }
 
-               /* public String getImagePath() {
+                public long getContact() {
+                    return contact;
+                }
+
+                public void setContact(long contact) {
+                    this.contact = contact;
+                }
+                public String getImagePath() {
                     return imagePath;
                 }
 
                 public void setImagePath(String imagePath) {
                     this.imagePath = imagePath;
-                }*/
+                }
             }

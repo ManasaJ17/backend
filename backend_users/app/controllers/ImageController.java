@@ -2,6 +2,7 @@ package controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Inject;
+import controllers.security.Authenticator;
 import play.Logger;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -21,12 +22,15 @@ public class ImageController extends Controller {
         this.imageStore = imageStore;
     }
 
+    //@Authenticator
     public Result uploadImage() {
 
         Logger.info("uploadImage");
 
 
         Http.MultipartFormData<File> body = request().body().asMultipartFormData();
+
+        Logger.info("After http image");
         if (null == body) {
             return badRequest("Not multipart request");
         }
@@ -54,9 +58,10 @@ public class ImageController extends Controller {
             final String imageId = imageStore.storeImage(source);
 
             ObjectNode result = Json.newObject();
-            //final String downloadUrl = routes.ImageController.downloadImage(imageId).absoluteURL(request());
+            final String downloadUrl = routes.ImageController.downloadImage(imageId).absoluteURL(request());
             result.put("image", imageId);
-            return ok(imageId);
+
+            return ok(Json.toJson(downloadUrl));
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -76,6 +81,7 @@ public class ImageController extends Controller {
         return ok(file);
     }
 
+    @Authenticator
     public Result deleteImage(String id) {
         try {
 

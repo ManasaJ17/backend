@@ -1,13 +1,20 @@
     package dao;
 
     import com.google.inject.Inject;
+    import controllers.RestaurantController;
     import models.Restaurant;
     import models.User;
+    import play.Logger;
     import play.db.jpa.JPAApi;
+    import play.libs.F;
 
     import javax.persistence.Query;
     import javax.persistence.TypedQuery;
+    import java.util.ArrayList;
     import java.util.List;
+    import java.util.function.Supplier;
+
+    import static java.lang.Math.*;
 
     public class RestaurantDao implements SignUpDao<Restaurant> {
 
@@ -15,6 +22,8 @@
 
         @Inject
         public RestaurantDao(JPAApi jpaApi) { this.jpaApi = jpaApi; }
+
+        private final static Logger.ALogger LOGGER = Logger.of(RestaurantController.class);
 
 
 
@@ -38,8 +47,9 @@
 
         public List<Restaurant> findByOwner(User owner) {
 
-            TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE r.owner = :owner ", Restaurant.class);
+            TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE r.owner = :owner AND r.status NOT LIKE :status ", Restaurant.class);
             query.setParameter("owner", owner);
+            query.setParameter("status", Restaurant.ApproveStatus.Rejected);
             List<Restaurant> restaurants = query.getResultList();
 
             return restaurants;
@@ -84,8 +94,10 @@
 
         public List<Restaurant> searchRestaurant(String search) {
 
-            TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE r.area = :search OR r.name = :search ", Restaurant.class);
+
+            TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE  r.status = :status AND (r.area = :search OR r.name = :search) ", Restaurant.class);
             query.setParameter("search", search);
+            query.setParameter("status", Restaurant.ApproveStatus.Approved);
             List<Restaurant> result = query.getResultList();
 
            if (result.isEmpty()){
@@ -93,6 +105,51 @@
            }
            return result;
 
+        }
+
+        public List<F.Tuple<Restaurant, Double>> nearByRestaurants(Double latitude, Double longitude ){
+
+            Double distance;
+            F.Tuple<Restaurant, Double> tuple ;
+            List<F.Tuple<Restaurant, Double>> result = new ArrayList<>();
+
+            TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE (SQRT(POW(r.latitude - :latitude,2) + POW(r.longitude - :longitude,2))) < 0.045 AND r.status = :status "
+                            , Restaurant.class);
+            query.setParameter("latitude", latitude);
+            query.setParameter("longitude", longitude);
+            query.setParameter("status", Restaurant.ApproveStatus.Approved);
+            List<Restaurant> restaurants = query.setMaxResults(10).getResultList();
+            LOGGER.debug(String.valueOf(restaurants));
+
+            if (restaurants.isEmpty()){
+                return null;
+            }
+
+            for (int i=0; i< restaurants.size(); i++) {
+                LOGGER.debug("inside for");
+
+                Restaurant restaurant = restaurants.get(i);
+
+                distance = (Math.sqrt((pow(restaurant.getLatitude() - latitude,2) + pow(restaurant.getLongitude() - longitude,2))) * 111);
+
+                tuple = new F.Tuple(restaurant, String.format("%.2f",distance));
+                result.add(tuple);
+            }
+
+
+            LOGGER.debug("at return "+ String.valueOf(result));
+            return result;
+
+        }
+
+        public List<Restaurant> popularRestaurants() {
+
+            TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE  r.status = :status", Restaurant.class);
+            query.setParameter("status", Restaurant.ApproveStatus.Approved);
+
+            List<Restaurant> restaurants = query.setMaxResults(10).getResultList();
+
+            return restaurants;
         }
 
 
