@@ -64,13 +64,15 @@ GET /restaurant/popular            controllers.RestaurantController.getPopularRe
 
 GET /restaurant/status/:status/:id            controllers.RestaurantController.updateStatus(status : Integer , id : Integer)
 
+GET /restaurant/likes           controllers.RestaurantController.RestaurantsByLikes()
+
 
 # -------------------- Image controller ----------------------------
 
 + nocsrf
 POST /images                        controllers.ImageController.uploadImage()
 
-GET /images/:id                     controllers.ImageController.downloadImage(id: String)
+ GET /images/:id                     controllers.ImageController.downloadImage(id: String)
 
 DELETE /images/:id                  controllers.ImageController.deleteImage(id: String)
 

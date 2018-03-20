@@ -55,7 +55,10 @@
                     final Integer cost = jsonNode.get("cost").asInt();
                     final Double latitude = jsonNode.get("lat").asDouble();
                     final Double longitude = jsonNode.get("lng").asDouble();
-                    //final String imagePath = jsonNode.get("path").asText();
+                    final String imagePath = jsonNode.get("img").asText();
+
+
+                    LOGGER.debug("img" + imagePath);
 
                     if (null == name) {
                         return badRequest("Missing restaurant name");
@@ -110,7 +113,8 @@
                     restaurant.setLatitude(latitude);
                     restaurant.setLongitude(longitude);
                     restaurant.setOwner(user);
-                   // restaurant.setImagePath(imagePath);
+                    restaurant.setImg(imagePath);
+                    restaurant.setCuisineCount(cuisine.split("\\,").length);
                     restaurant = restaurantDao.persist(restaurant);
 
                     if (user.getRestaurants().isEmpty()){
@@ -186,6 +190,10 @@
 
                 @Transactional
                 public Result deleteRestaurant() {
+
+                    final JsonNode jsonNode = request().body().asJson();
+                    final String name = jsonNode.get("name").asText();
+                    final String address = jsonNode.get("address").asText();
                     return ok();
                 }
 
@@ -194,7 +202,7 @@
 
                     final List<Restaurant> clients = restaurantDao.findAll();
 
-                    final JsonNode jsonNode1 = Json.toJson(clients);
+                    JsonNode jsonNode1 = Json.toJson(clients);
 
                     return ok(jsonNode1);
                 }
@@ -236,6 +244,7 @@
                     final String hpUrl = jsonNode.get("hpUrl").asText();
                     final String fbUrl = jsonNode.get("fbUrl").asText();
                     final Integer cost = jsonNode.get("cost").asInt();
+                    final String image = jsonNode.get("img").asText();
                     LOGGER.debug("after taking input");
 
                     Restaurant restaurant = restaurantDao.getRestaurant(name,address);
@@ -246,6 +255,8 @@
                     restaurant.setHomepageUrl(hpUrl);
                     restaurant.setFbUrl(fbUrl);
                     restaurant.setCost(cost);
+                    restaurant.setImg(image);
+                    restaurant.setCuisineCount(cuisine.split("\\,").length);
                     restaurant =restaurantDao.persist(restaurant);
 
                     com.fasterxml.jackson.databind.node.ObjectNode json = Json.newObject();
@@ -259,6 +270,7 @@
                     json.put("hpUrl",restaurant.getHomepageUrl());
                     json.put("fbUrl",restaurant.getFbUrl());
                     json.put("cost",restaurant.getCost());
+                    json.put("img", restaurant.getImg());
 
                     return ok(json);
                 }
@@ -306,6 +318,7 @@
                     final Double longitude = jsonNode.get("lng").asDouble();
 
                     LOGGER.debug("lat & long: " + String.valueOf(latitude + " " + longitude));
+
 
                     List<F.Tuple<Restaurant, Double>> restaurants = restaurantDao.nearByRestaurants(latitude, longitude);
 
@@ -398,8 +411,36 @@
 
         }
 
+        @Transactional
+        @Authenticator
+        public Result RestaurantsByLikes()
+        {
+            LOGGER.debug("inside Restaurants Based on Likes");
 
+            final User user = (User)ctx().args.get("user");
 
+            String likes = user.getLikes();
+            String[] like = likes.split("\\,");
+            LOGGER.debug(String.valueOf(like[1]));
+
+            F.Tuple<String,List<Restaurant>> restaurants;
+
+            List<F.Tuple<String,List<Restaurant>>> restList= new ArrayList<>();
+
+            for(int i = 0 ; i < like.length ; i++){
+
+                restaurants = restaurantDao.getRestaurantsByLikes(like[i]);
+                LOGGER.debug(String.valueOf(restaurants));
+
+                if (null != restaurants){
+                    restList.add(restaurants);
+                }
+            }
+
+            JsonNode jsonNode1  = Json.toJson(restList);
+            return ok(jsonNode1);
+
+        }
 
     }
 

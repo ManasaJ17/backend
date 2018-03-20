@@ -7,12 +7,10 @@
     import play.Logger;
     import play.db.jpa.JPAApi;
     import play.libs.F;
-
-    import javax.persistence.Query;
     import javax.persistence.TypedQuery;
     import java.util.ArrayList;
     import java.util.List;
-    import java.util.function.Supplier;
+
 
     import static java.lang.Math.*;
 
@@ -147,10 +145,31 @@
             TypedQuery<Restaurant> query = jpaApi.em().createQuery("SELECT r FROM Restaurant r WHERE  r.status = :status", Restaurant.class);
             query.setParameter("status", Restaurant.ApproveStatus.Approved);
 
-            List<Restaurant> restaurants = query.setMaxResults(10).getResultList();
+            LOGGER.debug("inside popularDao");
+            List<Restaurant> restaurants = query.setMaxResults(8).getResultList();
+            LOGGER.debug(restaurants.toString());
 
             return restaurants;
         }
 
+        public F.Tuple<String,List<Restaurant>> getRestaurantsByLikes(String like){
 
+            F.Tuple<String,List<Restaurant>> tuple;
+
+            TypedQuery<Restaurant> query = jpaApi.em().createQuery("select r from Restaurant r  WHERE  (SUBSTRING_INDEX(r.cuisine, ',' , 1 ) = :like  " +
+                    "OR  SUBSTRING_INDEX(r.cuisine, ',', -1 ) = :like OR " +
+                    " SUBSTRING_INDEX(SUBSTRING_INDEX(r.cuisine, ',', r.cuisineCount-1 ),',',-1)= :like OR " +
+                    "SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(r.cuisine, ',', r.cuisineCount-1 ),',',-2),',',1)= :like OR " +
+                    "SUBSTRING_INDEX(SUBSTRING_INDEX(SUBSTRING_INDEX(r.cuisine, ',', r.cuisineCount-1 ),',',-3),',',1)= :like) AND r.status = :status " ,Restaurant.class);
+
+            query.setParameter("like",like);
+            query.setParameter("status",Restaurant.ApproveStatus.Approved);
+
+            List<Restaurant> restaurants = query.setMaxResults(8).getResultList();
+
+            tuple = new  F.Tuple(like, restaurants);
+
+            return tuple;
+
+        }
     }

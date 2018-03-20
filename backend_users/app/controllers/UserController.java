@@ -39,7 +39,6 @@
                 final String email = jsonNode.get("email").asText();
                 final String password = jsonNode.get("password").asText();
                 final String likes = jsonNode.get("likes").asText();
-                //final String imagePath = jsonNode.get("path").asText();
 
                 if (null == userName) {
                     return badRequest("Missing userName");
@@ -62,7 +61,6 @@
                 user.setUserName(userName);
                 user.setEmail(email);
                 user.setRole(User.Role.User);
-                //user.setImagePath(imagePath);
 
                 String salt = userDao.generateSalt();
                 user.setSalt(salt);
@@ -151,6 +149,7 @@
                 json.put("email", user.getEmail());
                 json.put("likes",user.getLikes());
                 json.put("role",user.getRole().toString());
+                json.put("img", user.getImagePath());
 
                 return ok(json);
             }
@@ -254,8 +253,10 @@
 
                 final JsonNode jsonNode = request().body().asJson();
                 final String likes =jsonNode.get("likes").asText();
+                final String image = jsonNode.get("image").asText();
 
                 user.setLikes(likes);
+                user.setImagePath(image);
                 userDao.persist(user);
 
                 LOGGER.debug("User: {}", user);
@@ -263,6 +264,7 @@
                 json.put("userName", user.getUserName());
                 json.put("email", user.getEmail());
                 json.put("likes",user.getLikes());
+                json.put("img",user.getImagePath());
 
                 return ok(json);
             }
@@ -405,9 +407,6 @@
                 return ok("Role updated & approval mail is sent to the Client");
 
             }
-
-
-
 
         }
 

@@ -38,7 +38,7 @@ public class ImageController extends Controller {
         Logger.debug("Got body");
 
 
-        Http.MultipartFormData.FilePart<File> image = body.getFile("image");
+        Http.MultipartFormData.FilePart<File> image = body.getFile("file");
         if (image == null) {
             return badRequest("Missing image file in multi part request");
         }
@@ -59,7 +59,9 @@ public class ImageController extends Controller {
 
             ObjectNode result = Json.newObject();
             final String downloadUrl = routes.ImageController.downloadImage(imageId).absoluteURL(request());
-            result.put("image", imageId);
+            result.put("file", imageId);
+
+            Logger.debug("before return " + downloadUrl);
 
             return ok(Json.toJson(downloadUrl));
 
@@ -71,12 +73,16 @@ public class ImageController extends Controller {
     }
 
     public Result downloadImage(String id) {
+        Logger.debug("inside downloadImage method: " + id);
 
         final File file = imageStore.getImage(id);
+        Logger.debug("imageID " + file);
+
 
         if (null == file) {
             return notFound("Could not find file: " +  id);
         }
+        Logger.debug("before file return " + file);
 
         return ok(file);
     }

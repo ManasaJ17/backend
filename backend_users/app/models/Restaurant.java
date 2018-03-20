@@ -53,12 +53,15 @@
         Double longitude;
 
         @Basic
-        String imagePath;
+        String img;
 
         @Basic
         @JsonBackReference
         @ManyToOne
         private User owner;
+
+        @Basic
+        Integer cuisineCount;
 
         public Restaurant() {
         }
@@ -179,11 +182,15 @@
             this.timings = timings;
         }
 
-        public String getImagePath() {
-            return imagePath;
+        public String getImg() {
+            return img;
         }
 
-        public void setImagePath(String imagePath) {
-            this.imagePath = imagePath;
+        public void setImg(String img) {
+            this.img = img;
         }
+
+        public Integer getCuisineCount() { return cuisineCount;  }
+
+        public void setCuisineCount(Integer cuisineCount) { this.cuisineCount = cuisineCount; }
     }
