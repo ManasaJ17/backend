@@ -13,7 +13,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public final class ImageStore {
 
-    private static final Path IMAGES_ROOT = Paths.get("/tmp/play/images");
+    private static final Path IMAGES_ROOT = Paths.get("Desktop/play/images");
 
     public ImageStore() {
         File rootDir = IMAGES_ROOT.toFile();

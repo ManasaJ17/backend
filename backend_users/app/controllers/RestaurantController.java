@@ -16,6 +16,8 @@
             import javax.inject.Inject;
             import javax.mail.*;
             import javax.mail.internet.InternetAddress;
+            import java.time.LocalDateTime;
+            import java.time.LocalTime;
             import java.util.ArrayList;
             import java.util.List;
             import java.util.Properties;
@@ -161,7 +163,7 @@
                                 InternetAddress.parse( "platrovaservice@gmail.com"));
 
                         message.setSubject("Review Restaurant: " + name);
-                        message.setText("Review  " + name + " Details of the Restaurant:\n Address:"+ address+"\nContact: " + contact + "\n emailid: " + user.getEmail()+
+                        message.setText("Review  " + name + " Details of the Restaurant:\n\n Address:"+ address+"\n\nContact: " + contact + "\n\n emailid: " + user.getEmail()+
                                         "\nClick the link below to Approve the Restaurant:\n "+ url + "1/" + restaurant.getId() +
                                         "\nClick the link below to Reject the Restaurant:\n "+ url + "2/"  + restaurant.getId()
                         );
@@ -421,14 +423,14 @@
 
             String likes = user.getLikes();
             String[] like = likes.split("\\,");
-            LOGGER.debug(String.valueOf(like[1]));
+            LOGGER.debug(String.valueOf(like[0]));
 
             F.Tuple<String,List<Restaurant>> restaurants;
 
             List<F.Tuple<String,List<Restaurant>>> restList= new ArrayList<>();
 
             for(int i = 0 ; i < like.length ; i++){
-
+                LOGGER.debug(like[i]);
                 restaurants = restaurantDao.getRestaurantsByLikes(like[i]);
                 LOGGER.debug(String.valueOf(restaurants));
 

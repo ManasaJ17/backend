@@ -39,6 +39,7 @@
                 final String email = jsonNode.get("email").asText();
                 final String password = jsonNode.get("password").asText();
                 final String likes = jsonNode.get("likes").asText();
+                final String image = jsonNode.get("img").asText();
 
                 if (null == userName) {
                     return badRequest("Missing userName");
@@ -68,6 +69,7 @@
                 String hashedPassword = userDao.hashedPassword(password, salt, 30);
                 user.setPassword(hashedPassword);
                 user.setLikes(likes);
+                user.setImagePath(image);
 
                 user = userDao.persist(user);
 
@@ -110,7 +112,7 @@
                         String refreshToken = userDao.generateRefreshToken();
                         user.setRefreshToken(refreshToken);
 
-                        Long expiry = userDao.generateExpiryTime(12*60);
+                        Long expiry = userDao.generateExpiryTime(5*60);
                         user.setTokenExpire(expiry);
 
                         userDao.persist(user);

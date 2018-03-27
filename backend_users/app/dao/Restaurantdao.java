@@ -165,7 +165,7 @@
             query.setParameter("like",like);
             query.setParameter("status",Restaurant.ApproveStatus.Approved);
 
-            List<Restaurant> restaurants = query.setMaxResults(8).getResultList();
+            List<Restaurant> restaurants = query.setMaxResults(4).getResultList();
 
             tuple = new  F.Tuple(like, restaurants);
 
